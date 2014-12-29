@@ -76,6 +76,17 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			<?php		endif; ?>
 			<?php	endforeach; ?>
 			<?php endif; ?>
+		
+			<tr scope="row">
+				<th scope="row">
+					<label for="vb_post_schedule_shortenurls"><?php _e( 'Use shorten URLs', 'vblng' ); ?></label>
+				</th>
+				<td>
+					<label for="vb_post_schedule_shortenurls">
+						<input type="checkbox" name="vb_post_schedule_shortenurls" id="vb_post_schedule_shortenurls" value="yes" />
+					</label>
+				</td>
+			</tr>
 		</table>
 	</div>
 </div>
@@ -145,7 +156,7 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 	<table class="form-table">
 		<tr scope="row">
 			<th scope="row">
-				<label for="vb_post_schedule_isscheduled"><?php _e( 'Is Scheduled?', 'vblng' ); ?></label>
+				<label for="vb_post_schedule_isscheduled"><?php _e( 'Schedule it?', 'vblng' ); ?></label>
 			</th>
 			<td>
 				<label for="vb_post_schedule_isscheduled">
@@ -169,17 +180,6 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			</th>
 			<td>
 				<input type="text" name="vb_post_schedule_time" id="vb_post_schedule_time" placeholder="HH:MM" value="" class="" />
-			</td>
-		</tr>
-
-		<tr scope="row">
-			<th scope="row">
-				<label for="vb_post_schedule_shortenurls"><?php _e( 'Use shorten URLs', 'vblng' ); ?></label>
-			</th>
-			<td>
-				<label for="vb_post_schedule_shortenurls">
-					<input type="checkbox" name="vb_post_schedule_shortenurls" id="vb_post_schedule_shortenurls" value="yes" />
-				</label>
 			</td>
 		</tr>
 	</table>

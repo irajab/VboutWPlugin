@@ -131,7 +131,7 @@ class VboutWP {
 		//wp_enqueue_script( 'hasp-js', HASP_URL.'/js/script.js', array( 'jquery' ), '1.0', true );
 		
 		// CSS
-		wp_enqueue_style('jquery-ui-css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+		wp_enqueue_style('jquery-ui-css', '//ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
 		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
 	}
 	
@@ -142,9 +142,9 @@ class VboutWP {
 			$hasError = false;
 			$errorMessage = '';
 			
-			echo '<pre>';
+			/*echo '<pre>';
 			print_r($_REQUEST);
-			return;
+			return;*/
 			
 			$post = get_post($_POST['post_id']);
 			
@@ -175,7 +175,7 @@ class VboutWP {
 					);
 					
 					//print_r($params);
-					//print_r($sm->addNewPost($params));
+					//print_r($sm->addNewPost($params)); exit;
 					$results['social'][$channelName] = $sm->addNewPost($params);
 					
 					if (isset($results['social'][$channelName]['errorCode'])) {
@@ -206,7 +206,7 @@ class VboutWP {
 				);
 				
 				//print_r($params);
-				//print_r($em->addNewCampaign($params));
+				//print_r($em->addNewCampaign($params)); exit;
 				$results['campaign'] = $em->addNewCampaign($params);
 				
 				if (isset($results['campaign']['errorCode'])) {
@@ -448,7 +448,7 @@ class VboutWP {
 
 		//	GET VBOUT CHANNELS
 		$channels = $sm->getChannels(); 		
-		
+
 		$em = new EmailMarketingWS($app_key);
 
 		//	GET VBOUT LISTS

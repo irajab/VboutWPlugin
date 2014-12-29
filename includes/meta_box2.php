@@ -6,7 +6,9 @@
 <div class="wrap">
 	<h2>Send to Vbout: <?php echo $post->post_title; ?></h2>
 
-	<p><?php echo $post->post_content; ?></p>
+	<div style="background-color: #fff; border: 1px solid #000; height: 200px; overflow: auto; margin-bottom: 25px; padding: 10px;">
+		<?php echo $post->post_content; ?>
+	</div>
 	
 	<form method="post" action="options.php">
 		<input type="hidden" name="post_id" value="<?php echo $postId; ?>" />
@@ -73,6 +75,17 @@
 					<?php		endif; ?>
 					<?php	endforeach; ?>
 					<?php endif; ?>
+						
+					<tr scope="row">
+						<th scope="row">
+							<label for="vb_post_schedule_shortenurls"><?php _e( 'Use shorten URLs', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<label for="vb_post_schedule_shortenurls">
+								<input type="checkbox" name="vb_post_schedule_shortenurls" id="vb_post_schedule_shortenurls" value="yes" />
+							</label>
+						</td>
+					</tr>
 				</table>
 			</div>
 		</div>
@@ -142,7 +155,7 @@
 			<table class="form-table">
 				<tr scope="row">
 					<th scope="row">
-						<label for="vb_post_schedule_isscheduled"><?php _e( 'Is Scheduled?', 'vblng' ); ?></label>
+						<label for="vb_post_schedule_isscheduled"><?php _e( 'Schedule it?', 'vblng' ); ?></label>
 					</th>
 					<td>
 						<label for="vb_post_schedule_isscheduled">
@@ -169,17 +182,6 @@
 					</td>
 				</tr>
 
-				<tr scope="row">
-					<th scope="row">
-						<label for="vb_post_schedule_shortenurls"><?php _e( 'Use shorten URLs', 'vblng' ); ?></label>
-					</th>
-					<td>
-						<label for="vb_post_schedule_shortenurls">
-							<input type="checkbox" name="vb_post_schedule_shortenurls" id="vb_post_schedule_shortenurls" value="yes" />
-						</label>
-					</td>
-				</tr>
-				
 				<tr valign="top">
 					<th scope="row">
 						<label>&nbsp;</label>
