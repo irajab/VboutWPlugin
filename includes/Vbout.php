@@ -308,7 +308,7 @@ class VboutWP {
 				$hasError = false;
 				$errorMessage = '';
 				
-				echo '<pre>';
+				//echo '<pre>';
 				//print_r($_REQUEST);
 				//return;
 				
