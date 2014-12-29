@@ -178,7 +178,7 @@ class VboutWP {
 					//print_r($sm->addNewPost($params)); exit;
 					$results['social'][$channelName] = $sm->addNewPost($params);
 					
-					if (isset($results['social'][$channelName]['errorCode'])) {
+					if (is_array($results['social'][$channelName]) && isset($results['social'][$channelName]['errorCode'])) {
 						$hasError = true;
 						$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
 						
@@ -209,7 +209,7 @@ class VboutWP {
 				//print_r($em->addNewCampaign($params)); exit;
 				$results['campaign'] = $em->addNewCampaign($params);
 				
-				if (isset($results['campaign']['errorCode'])) {
+				if (is_array($results['campaign']) && isset($results['campaign']['errorCode'])) {
 					$hasError = true;
 					$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
 					
@@ -339,15 +339,15 @@ class VboutWP {
 						);
 						
 						//print_r($params);
-						//print_r($sm->addNewPost($params));
+						//print_r($sm->addNewPost($params)); exit;
 						$results['social'][$channelName] = $sm->addNewPost($params);
 						
-						if (isset($results['social'][$channelName]['errorCode'])) {
+						if (is_array($results['social'][$channelName]) && isset($results['social'][$channelName]['errorCode'])) {
 							$hasError = true;
-							$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+							$errorMessage .= $results['social']['errorCode'].' - '.$results['social']['errorMessage'];
 							
-							if (isset($results['campaign']['fields']))
-								$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+							if (isset($results['social']['fields']))
+								$errorMessage .= '<ul><li>'.implode('</li><li>', $results['social']['fields']).'</li></ul>';
 						}
 					}
 				}
@@ -373,7 +373,7 @@ class VboutWP {
 					//print_r($em->addNewCampaign($params));
 					$results['campaign'] = $em->addNewCampaign($params);
 					
-					if (isset($results['campaign']['errorCode'])) {
+					if (is_array($results['campaign']) && isset($results['campaign']['errorCode'])) {
 						$hasError = true;
 						$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
 						
@@ -390,7 +390,7 @@ class VboutWP {
 					$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
 				}
 				
-				//exit;
+				//header('location: '.get_admin_url().'post.php?post='.$_POST['post_id']);
 			}
 		}
 	}
