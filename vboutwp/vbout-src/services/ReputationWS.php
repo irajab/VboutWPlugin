@@ -46,7 +46,7 @@ class ReputationWS extends Vbout
        return $result;
     }
 	
-	public function getFeedback($id = NULL)
+	public function getMyFeedback($id = NULL)
     {	
 		$result = array();
 		
@@ -100,7 +100,7 @@ class ReputationWS extends Vbout
        return $result;
     }
 	
-	public function deleteFeedback($id = NULL)
+	public function removeFeedback($id = NULL)
     {	
 		$result = array();
 		
@@ -108,7 +108,7 @@ class ReputationWS extends Vbout
 			$review = $this->deletefeedback(array('id'=>$id));
 
             if ($review != null && isset($review['data'])) {
-                $result = array_merge($result, $review['data']['item']);
+                $result = $review['data']['item'];
             }
 
 		} catch (VboutException $ex) {

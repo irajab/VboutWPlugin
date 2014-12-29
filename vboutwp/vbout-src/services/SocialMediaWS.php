@@ -46,7 +46,7 @@ class SocialMediaWS extends Vbout
        return $result;
     }
 	
-	public function getPost($params = array())
+	public function getMyPost($params = array())
     {	
 		$result = array();
 		
@@ -82,7 +82,7 @@ class SocialMediaWS extends Vbout
        return $result;
     }
 	
-	public function deletePost($id = NULL)
+	public function removePost($id = NULL)
     {	
 		$result = array();
 		
@@ -90,7 +90,7 @@ class SocialMediaWS extends Vbout
 			$post = $this->deletepost(array('id'=>$id));
 
             if ($post != null && isset($post['data'])) {
-                $result = array_merge($result, $post['data']['item']);
+                $result = $post['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -100,15 +100,15 @@ class SocialMediaWS extends Vbout
        return $result;
     }
 	
-	public function addPost($params = array())
+	public function addNewPost($params = array())
     {	
 		$result = array();
 		
 		try {
 			$post = $this->addpost($params);
-
+			
             if ($post != null && isset($post['data'])) {
-                $result = array_merge($result, $post['data']['item']);
+                $result = $post['data']['item'];
             }
 
 		} catch (VboutException $ex) {

@@ -121,6 +121,116 @@ class VboutWP {
 		
 		if (get_option("vbout_acc_timezone") == NULL)
 			update_option("vbout_acc_timezone", self::DEFAULT_TIMEZONE);
+			
+		// JavaScript
+		wp_enqueue_script('jquery');
+		wp_enqueue_script('jquery-ui-core');
+		wp_enqueue_script('jquery-ui-datepicker');
+		
+		wp_enqueue_script('vb-jschosen-dropbox', VBOUT_URL.'/js/chosen.jquery.min.js', array( 'jquery' ));
+		//wp_enqueue_script( 'hasp-js', HASP_URL.'/js/script.js', array( 'jquery' ), '1.0', true );
+		
+		// CSS
+		wp_enqueue_style('jquery-ui-css', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
+	}
+	
+	public static function sendToVbout()
+	{	
+		if (isset($_POST['vb_post_to_channels']) || isset($_POST['vb_post_to_campaign'])) {
+			$results = array();
+			$hasError = false;
+			$errorMessage = '';
+			
+			echo '<pre>';
+			print_r($_REQUEST);
+			return;
+			
+			$post = get_post($_POST['post_id']);
+			
+			$app_key = array(
+				'app_key' => esc_attr(get_option('vbout_appkey')),
+				'client_secret' => esc_attr(get_option('vbout_clientsecret')),
+				'oauth_token' => esc_attr(get_option('vbout_authtoken'))
+			);
+
+			//	CHECK TIME 12-hours | 24-hours
+			if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
+				$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time'];
+			} else {
+				$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
+			}
+
+			//	CHECK IF POST TO CHANNELS
+			if (isset($_REQUEST['vb_post_to_channels'])) {
+				$sm = new SocialMediaWS($app_key);
+				
+				foreach($_REQUEST['channels'] as $channelName => $channelId) {
+					$params = array(
+						'message'=>$post->post_content,
+						'channel'=>$channelName,
+						'channelid'=>implode(',', $channelId),
+						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+						'scheduleddate'=>date('Y-m-d H:i', strtotime($scheduledDateTime))
+					);
+					
+					//print_r($params);
+					//print_r($sm->addNewPost($params));
+					$results['social'][$channelName] = $sm->addNewPost($params);
+					
+					if (isset($results['social'][$channelName]['errorCode'])) {
+						$hasError = true;
+						$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+						
+						if (isset($results['campaign']['fields']))
+							$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+					}
+				}
+			}
+			
+			if (isset($_REQUEST['vb_post_to_campaign'])) {
+				$em = new EmailMarketingWS($app_key);
+				
+				$params = array(
+					'type'=>'standard',
+					'name'=>$post->post_title,
+					'subject'=>$_REQUEST['vb_post_schedule_emailsubject'],
+					'fromemail'=>$_REQUEST['vb_post_schedule_fromemail'],
+					'from_name'=>$_REQUEST['vb_post_schedule_fromname'],
+					'reply_to'=>$_REQUEST['vb_post_schedule_replyto'],
+					'isdraft'=>'false',
+					'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+					'scheduled_datetime'=>date('Y-m-d H:i', strtotime($scheduledDateTime)),
+					'recipients'=>($_REQUEST['campaign'] != NULL)?implode(',', $_REQUEST['campaign']):'',
+					'body'=>$post->post_content
+				);
+				
+				//print_r($params);
+				//print_r($em->addNewCampaign($params));
+				$results['campaign'] = $em->addNewCampaign($params);
+				
+				if (isset($results['campaign']['errorCode'])) {
+					$hasError = true;
+					$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+					
+					if (isset($results['campaign']['fields']))
+						$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+				}
+			}
+			
+			//IF THERE IS AN ERROR ADD CUSTOM MESSAGE OF THE ERROR
+			if ($hasError) {
+				//print_r($errorMessage);
+				$_SESSION['vb_custom_error'] = $errorMessage;
+			} else {
+				$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+			}
+			
+			//exit;
+		}
+		
+		header('location: '.get_admin_url().'admin.php?page=vbout-schedule&id='.$_POST['post_id']);
+		exit;
 	}
 
 	public static function checkApiStatus()
@@ -162,6 +272,7 @@ class VboutWP {
 		global $wp_version;
 
 		add_menu_page('Vbout Settings', 'Vbout Settings', 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), "https://www.vbout.com/images/wp-logo.png?new", 81);
+		add_submenu_page('non-existed-page', 'Vbout Schedule', 'Vbout Schedule', 'manage_options', 'vbout-schedule', array(__CLASS__, 'admin_schedule_page'));
 		
 		//	ADD CUSTOM LINKS TO DIFFERENT AREAS
 		add_filter('post_row_actions', array(__CLASS__, 'add_vbout_options'), 10, 2);
@@ -169,6 +280,119 @@ class VboutWP {
 		
 		// ADD CUSTOM BOXES TO DIFFERENT AREAS
 		add_action('add_meta_boxes', array(__CLASS__, 'add_vbout_meta_box'));
+		
+		// ADD ACTIONS AFTER SAVE/UPDATE/EDIT/ETC....
+		add_action('save_post', array(__CLASS__, 'send_vbout_queries'));
+		
+		// Adds the action to the hook
+		add_action('admin_notices', array(__CLASS__, 'vbout_custom_notices'));
+	}
+	
+	static function vbout_custom_notices()
+	{
+		if (isset($_SESSION['vb_custom_error'])) {
+			echo '<div id="message" class="error"><p><strong>'.$_SESSION['vb_custom_error'].'</strong></p></div>';
+		} elseif (isset($_SESSION['vb_custom_success'])) {
+			echo '<div id="message" class="updated"><p><strong>'.$_SESSION['vb_custom_success'].'</strong></p></div>';
+		}
+		
+		unset($_SESSION['vb_custom_error']);
+		unset($_SESSION['vb_custom_success']);
+	}
+	
+	static function send_vbout_queries()
+	{
+		if ( current_user_can( 'publish_posts' ) ) {			
+			if ($_POST != NULL) {
+				$results = array();
+				$hasError = false;
+				$errorMessage = '';
+				
+				echo '<pre>';
+				//print_r($_REQUEST);
+				//return;
+				
+				$app_key = array(
+					'app_key' => esc_attr(get_option('vbout_appkey')),
+					'client_secret' => esc_attr(get_option('vbout_clientsecret')),
+					'oauth_token' => esc_attr(get_option('vbout_authtoken'))
+				);
+
+				//	CHECK TIME 12-hours | 24-hours
+				if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
+					$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time'];
+				} else {
+					$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
+				}
+
+				//	CHECK IF POST TO CHANNELS
+				if (isset($_REQUEST['vb_post_to_channels'])) {
+					$sm = new SocialMediaWS($app_key);
+					
+					foreach($_REQUEST['channels'] as $channelName => $channelId) {
+						$params = array(
+							'message'=>$_REQUEST['content'],
+							'channel'=>$channelName,
+							'channelid'=>implode(',', $channelId),
+							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+							'scheduleddate'=>date('Y-m-d H:i', strtotime($scheduledDateTime))
+						);
+						
+						//print_r($params);
+						//print_r($sm->addNewPost($params));
+						$results['social'][$channelName] = $sm->addNewPost($params);
+						
+						if (isset($results['social'][$channelName]['errorCode'])) {
+							$hasError = true;
+							$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+							
+							if (isset($results['campaign']['fields']))
+								$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+						}
+					}
+				}
+				
+				if (isset($_REQUEST['vb_post_to_campaign'])) {
+					$em = new EmailMarketingWS($app_key);
+					
+					$params = array(
+						'type'=>'standard',
+						'name'=>$_REQUEST['post_title'],
+						'subject'=>$_REQUEST['vb_post_schedule_emailsubject'],
+						'fromemail'=>$_REQUEST['vb_post_schedule_fromemail'],
+						'from_name'=>$_REQUEST['vb_post_schedule_fromname'],
+						'reply_to'=>$_REQUEST['vb_post_schedule_replyto'],
+						'isdraft'=>'false',
+						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+						'scheduled_datetime'=>date('Y-m-d H:i', strtotime($scheduledDateTime)),
+						'recipients'=>($_REQUEST['campaign'] != NULL)?implode(',', $_REQUEST['campaign']):'',
+						'body'=>$_REQUEST['content']
+					);
+					
+					//print_r($params);
+					//print_r($em->addNewCampaign($params));
+					$results['campaign'] = $em->addNewCampaign($params);
+					
+					if (isset($results['campaign']['errorCode'])) {
+						$hasError = true;
+						$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+						
+						if (isset($results['campaign']['fields']))
+							$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+					}
+				}
+				
+				//IF THERE IS AN ERROR ADD CUSTOM MESSAGE OF THE ERROR
+				if ($hasError) {
+					//print_r($errorMessage);
+					$_SESSION['vb_custom_error'] = $errorMessage;
+				} else {
+					$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+				}
+				
+				//exit;
+			}
+		}
 	}
 	
 	static function add_vbout_meta_box()
@@ -185,15 +409,52 @@ class VboutWP {
 	
 	static function vbout_meta_box()
 	{
+		$app_key = array(
+			'app_key' => esc_attr(get_option('vbout_appkey')),
+			'client_secret' => esc_attr(get_option('vbout_clientsecret')),
+			'oauth_token' => esc_attr(get_option('vbout_authtoken'))
+		);
+		
+		$sm = new SocialMediaWS($app_key);
+
+		//	GET VBOUT CHANNELS
+		$channels = $sm->getChannels(); 		
+		
+		$em = new EmailMarketingWS($app_key);
+
+		//	GET VBOUT LISTS
+		$lists = $em->getMyLists();
+		
 		require VBOUT_DIR.'/includes/meta_box.php';
 	}
 	
 	static function add_vbout_options($actions, $page_object)
 	{
 		//WP_Post Object ( [ID] => 1 [post_author] => 1 [post_date] => 2014-12-26 13:23:30 [post_date_gmt] => 2014-12-26 13:23:30 [post_content] => Welcome to WordPress. This is your first post. Edit or delete it, then start blogging! [post_title] => Hello world! [post_excerpt] => [post_status] => publish [comment_status] => open [ping_status] => open [post_password] => [post_name] => hello-world [to_ping] => [pinged] => [post_modified] => 2014-12-26 13:23:30 [post_modified_gmt] => 2014-12-26 13:23:30 [post_content_filtered] => [post_parent] => 0 [guid] => http://localhost/wpplugin/?p=1 [menu_order] => 0 [post_type] => post [post_mime_type] => [comment_count] => 1 [filter] => raw )
-		$actions['vbout_link'] = '<a href="javascript://">Schedule on Vbout</a>';
+		$actions['vbout_link'] = '<a href="'.get_admin_url().'admin.php?page=vbout-schedule&id='.$page_object->ID.'">Schedule on Vbout</a>';
 	 
 	   return $actions;
+	}
+	
+	static function admin_schedule_page()
+	{
+		$app_key = array(
+			'app_key' => esc_attr(get_option('vbout_appkey')),
+			'client_secret' => esc_attr(get_option('vbout_clientsecret')),
+			'oauth_token' => esc_attr(get_option('vbout_authtoken'))
+		);
+		
+		$sm = new SocialMediaWS($app_key);
+
+		//	GET VBOUT CHANNELS
+		$channels = $sm->getChannels(); 		
+		
+		$em = new EmailMarketingWS($app_key);
+
+		//	GET VBOUT LISTS
+		$lists = $em->getMyLists();
+		
+		require VBOUT_DIR.'/includes/meta_box2.php';
 	}
 	
 	static function admin_options_page() 

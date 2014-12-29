@@ -28,7 +28,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function getCampaign($params = array())
+	public function getMyCampaign($params = array())
     {	
 		$result = array();
 		
@@ -46,7 +46,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function deleteCampaign($params = array())
+	public function removeCampaign($params = array())
     {	
 		$result = array();
 		
@@ -54,7 +54,7 @@ class EmailMarketingWS extends Vbout
 			$campaign = $this->deletecampaign($params);
 
             if ($campaign != null && isset($campaign['data'])) {
-                $result = array_merge($result, $campaign['data']['item']);
+                $result = $campaign['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -64,7 +64,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function addCampaign($params = array())
+	public function addNewCampaign($params = array())
     {	
 		$result = array();
 		
@@ -72,7 +72,7 @@ class EmailMarketingWS extends Vbout
 			$campaign = $this->addcampaign($params);
 
             if ($campaign != null && isset($campaign['data'])) {
-                $result = array_merge($result, $campaign['data']['item']);
+                $result = $campaign['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -82,7 +82,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function editCampaign($params = array())
+	public function updateCampaign($params = array())
     {	
 		$result = array();
 		
@@ -90,7 +90,7 @@ class EmailMarketingWS extends Vbout
 			$campaign = $this->editcampaign($params);
 
             if ($campaign != null && isset($campaign['data'])) {
-                $result = array_merge($result, $campaign['data']['item']);
+                $result = $campaign['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -100,7 +100,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function getLists()
+	public function getMyLists()
     {	
 		$result = array();
 		
@@ -118,7 +118,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function getList($id = NULL)
+	public function getMyList($id = NULL)
     {	
 		$result = array();
 		
@@ -136,7 +136,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function addList($params = array())
+	public function addNewList($params = array())
     {	
 		$result = array();
 		
@@ -144,7 +144,7 @@ class EmailMarketingWS extends Vbout
 			$list = $this->addlist($params);
 
             if ($list != null && isset($list['data'])) {
-                $result = array_merge($result, $list['data']['item']);
+                $result = $list['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -154,7 +154,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function deleteList($id = NULL)
+	public function removeList($id = NULL)
     {	
 		$result = array();
 		
@@ -162,7 +162,7 @@ class EmailMarketingWS extends Vbout
 			$list = $this->deletelist(array('id'=>$id));
 
             if ($list != null && isset($list['data'])) {
-                $result = array_merge($result, $list['data']['item']);
+                $result = $list['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -172,7 +172,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function editList($params = array())
+	public function updateList($params = array())
     {	
 		$result = array();
 		
@@ -180,7 +180,7 @@ class EmailMarketingWS extends Vbout
 			$list = $this->editlist($params);
 
             if ($list != null && isset($list['data'])) {
-                $result = array_merge($result, $list['data']['item']);
+                $result = $list['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -190,7 +190,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function getContacts($listId = NULL)
+	public function getMyContacts($listId = NULL)
     {	
 		$result = array();
 		
@@ -208,7 +208,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function getContact($id = NULL)
+	public function getMyContact($id = NULL)
     {	
 		$result = array();
 		
@@ -226,7 +226,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function addContact($params = array())
+	public function addNewContact($params = array())
     {	
 		$result = array();
 		
@@ -234,7 +234,7 @@ class EmailMarketingWS extends Vbout
 			$contact = $this->addcontact($params);
 
             if ($contact != null && isset($contact['data'])) {
-                $result = array_merge($result, $contact['data']['item']);
+                $result = $contact['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -244,7 +244,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function editContact($params = array())
+	public function updateContact($params = array())
     {	
 		$result = array();
 		
@@ -252,7 +252,7 @@ class EmailMarketingWS extends Vbout
 			$contact = $this->editcontact($params);
 
             if ($contact != null && isset($contact['data'])) {
-                $result = array_merge($result, $contact['data']['item']);
+                $result = $contact['data']['item'];
             }
 
 		} catch (VboutException $ex) {
@@ -262,7 +262,7 @@ class EmailMarketingWS extends Vbout
        return $result;
     }
 	
-	public function deleteContact($id = NULL)
+	public function removeContact($id = NULL)
     {	
 		$result = array();
 		
@@ -270,7 +270,7 @@ class EmailMarketingWS extends Vbout
 			$contact = $this->deletecontact(array('id'=>$id));
 
             if ($contact != null && isset($contact['data'])) {
-                $result = array_merge($result, $contact['data']['item']);
+                $result = $contact['data']['item'];
             }
 
 		} catch (VboutException $ex) {
