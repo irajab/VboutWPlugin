@@ -105,6 +105,8 @@ class SocialMediaWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$post = $this->addpost($params);
 			
             if ($post != null && isset($post['data'])) {

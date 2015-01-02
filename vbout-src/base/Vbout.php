@@ -121,16 +121,26 @@ class Vbout {
 	public function safeCall($name, $args)
     {
 		// Unpack our arguments
-        if (is_array($args) && array_key_exists(0, $args) && is_array($args[0])) {
-            $params = $args[0];
-        } else {
-            $params = array();
-        }
+		if( $this->method == 'GET' ) {
+			if (is_array($args) && array_key_exists(0, $args) && is_array($args[0])) {
+				$params = $args[0];
+			} else {
+				$params = array();
+			}
+		} else {
+			$params = array();
+			$fields = $args[0];
+			
+			$fields_string = '';
+			
+			foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+			rtrim($fields_string, '&');
+		}
 		
         // Add authentication tokens to querystring
-        if (!isset($this->auth_tokens['access_token'])) {
-            $params = array_merge($params, $this->auth_tokens);
-        }
+		if (!isset($this->auth_tokens['access_token'])) {
+			$params = array_merge($params, $this->auth_tokens);
+		}
 
         // Build our request url, urlencode querystring params
         $request_url = $this->protocol . $this->api_endpoint . '/' . $this->api_version . $this->api_url . $name . '.' . strtolower($this->api_response) . '?' . http_build_query($params);
@@ -140,8 +150,9 @@ class Vbout {
 		if( $this->method == 'GET' ) {
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 		} else {
-			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POST, count($fields));
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+			curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
 		}
 
         $header[] = "Accept: application/json";
@@ -153,7 +164,7 @@ class Vbout {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $result = curl_exec($ch);
-
+		
         $response = json_decode($result, true);
 
 		if (isset($response['response']) && $response['response']['header']['status'] == 'error')

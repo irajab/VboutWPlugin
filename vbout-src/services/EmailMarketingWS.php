@@ -69,6 +69,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$campaign = $this->addcampaign($params);
 
             if ($campaign != null && isset($campaign['data'])) {
@@ -87,6 +89,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$campaign = $this->editcampaign($params);
 
             if ($campaign != null && isset($campaign['data'])) {
@@ -141,6 +145,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$list = $this->addlist($params);
 
             if ($list != null && isset($list['data'])) {
@@ -177,6 +183,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$list = $this->editlist($params);
 
             if ($list != null && isset($list['data'])) {
@@ -231,6 +239,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$contact = $this->addcontact($params);
 
             if ($contact != null && isset($contact['data'])) {
@@ -249,6 +259,8 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
+			$this->set_method('POST');
+			
 			$contact = $this->editcontact($params);
 
             if ($contact != null && isset($contact['data'])) {
