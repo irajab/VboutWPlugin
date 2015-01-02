@@ -1,15 +1,75 @@
 <?php
 class VboutWP {
-	const PLUGIN_VERSION = "1.0",
-		  DEFAULT_TIMEZONE = "America/New_York";
+	const PLUGIN_VERSION = "1.0";
+	const PLUGIN_SIDEBAR_ICON = "https://www.vbout.com/images/wp-logo.png?new";
+
+	const DEFAULT_TIMEZONE = "America/New_York";
+	
+	///	API STATUS
+	const VBOUT_STATUS_DISACTIVE	= 0;	//API NOT CONNECTED
+	const VBOUT_STATUS_ACTIVE 		= 1;	//API CONNECTED
+	const VBOUT_STATUS_LOCKED 		= 2;	//API IS LOCKED
+	const VBOUT_STATUS_ERROR 		= 3;	//API ERROR CONNECTION
+	
+	///	API METHODS
+	const VBOUT_METHOD_USERKEY	= 0;	//API CONNECTED THROUGH USER KEY
+	const VBOUT_METHOD_APPKEY 	= 1;	//API CONNECTED THROUGH APP KEY (AppKey|ClientSecret|AuthToken)
+	
+	///	PLUGIN AVAILABILITY OPTION
+	const VBOUT_AVAILABLE_BOTH		= 0;	//PLUGIN WILL BE AVAILABLE FOR BOTH POSTS/PAGES
+	const VBOUT_AVAILABLE_POSTONLY	= 1;	//PLUGIN WILL BE AVAILABLE FOR POSTS ONLY
+	const VBOUT_AVAILABLE_PAGEONLY	= 2;	//PLUGIN WILL BE AVAILABLE FOR PAGES ONLY
+	//const VBOUT_AVAILABLE_MEDIAONLY	= 3;	//PLUGIN WILL BE AVAILABLE FOR MEDIA /// EXTRA OPTION NOT USED FOR NOW
+	
+	///	PLUGIN ATTACHMENT OPTION
+	const VBOUT_ATTACH_EVERYWHERE	= 0;	//PLUGIN WILL BE ATTACHED INSIDE THE QUICK MENU AND POST FORM (EDIT/ADD)
+	const VBOUT_ATTACH_MENUONLY		= 1;	//PLUGIN WILL BE ATTACHED INSIDE THE QUICK MENU ONLY
+	const VBOUT_ATTACH_FORMONLY		= 2;	//PLUGIN WILL ATTACHED INSIDE THE POST FORM (EDIT/ADD) ONLY
 	
 	static $options = array(
-		"appkey",
-		"clientsecret",
-		"authtoken",
-		//....
-		"sync_emaillist",
-		"plugin_version"
+		///...
+		'connect'=>array(
+			///...
+			"appkey",
+			"clientsecret",
+			"authtoken",
+			//...
+			"userkey",
+		),
+	
+		///...
+		'settings'=>array(
+			"plugin_availability",
+			"plugin_attachment",
+			//... SOCIAL MEDIA
+			"sm_activated",
+			//... EMAIL MARKETING
+			"em_activated",
+			"em_emailsubject",
+			"em_fromemail",
+			"em_fromname",
+			"em_replyto",
+			///...
+			"sync_emaillist",
+			///... TRACKING CODE
+			"tracking_activated",
+			"tracking_domain",
+			"tracking_code",
+		),
+		
+		///...
+		'others'=>array(
+			"plugin_version",
+			"status",
+			"method",
+			"api_status_checksum",
+			"api_business",
+			"flash_message",
+			///... 
+			"sm_channels",
+			"em_lists",
+			"tracking_domains",
+		)
 	);
 	
 	public static function process() 
@@ -18,53 +78,94 @@ class VboutWP {
 		self::initializeFilters();
 	}
 
-	public static function initializeFilters() 
-	{
-		add_action('admin_menu', array(__CLASS__, 'admin_menu'));
-
-		//add_action('wp_dashboard_setup', array(__CLASS__, 'wp_dashboard_setup'));
-		//add_action('widgets_init', array(__CLASS__, 'widgets_init'));
-	}
-
 	public static function initializeOptions() 
 	{ 
-		//	DEFAULT AUTHENTICATION KEYS
+		//	DEFAULT INIT PLUGIN
+		///	THIS VARIABLE USED TO TEST WHETHER API IS ACTIVATED OR NOT
+		add_filter("default_option_vbout_status", array(__CLASS__, "defaultStatus"));
+		///	THIS VARIABLE USED TO TELL WHICH METHOD YOU CHOSE TO CONNECT TO VBOUT
+		add_filter("default_option_vbout_method", array(__CLASS__, "defaultMethod"));
+		
+		//	AUTHENTICATION KEYS: YOU CAN CONNECT TO API USING 2 METHODS
+		///	APP KEY
 		add_filter("default_option_vbout_appkey", array(__CLASS__, "defaultAppKey"));
 		add_filter("default_option_vbout_clientsecret", array(__CLASS__, "defaultClientSecret"));
 		add_filter("default_option_vbout_authtoken", array(__CLASS__, "defaultAuthToken"));
+		/// USER KEY
+		add_filter("default_option_vbout_userkey", array(__CLASS__, "defaultUserKey"));
+		////////////////////////////////////////////////////////////////
 		
-		//	DEFAULT SYNC VALUES
+		//	DEFAULT GENERAL PLUGIN OPTIONS
+		add_filter("default_option_vbout_plugin_availability", array(__CLASS__, "defaultPluginAvailability"));
+		add_filter("default_option_vbout_plugin_attachment", array(__CLASS__, "defaultPluginAttachment"));
+		////////////////////////////////////////////////////////////////
+		
+		//	DEFAULT SOCIAL MEDIA FEATURE OPTIONS
+		add_filter("default_option_vbout_sm_activated", array(__CLASS__, "defaultSocialMediaActivated"));
+		add_filter("default_option_vbout_sm_channels", array(__CLASS__, "defaultSocialMediaChannels"));
+		
+		//	DEFAULT EMAIL MARKETING CAMPAIGN FEATURE OPTIONS
+		add_filter("default_option_vbout_em_activated", array(__CLASS__, "defaultEmailMarketingActivated"));
+		add_filter("default_option_vbout_em_lists", array(__CLASS__, "defaultEmailMarketingLists"));
+		
+		add_filter("default_option_vbout_em_emailsubject", array(__CLASS__, "defaultCampaignSubject"));
+		add_filter("default_option_vbout_em_fromemail", array(__CLASS__, "defaultCampaignFromEmail"));
+		add_filter("default_option_vbout_em_fromname", array(__CLASS__, "defaultCampaignFromName"));
+		add_filter("default_option_vbout_em_replyto", array(__CLASS__, "defaultCampaignReplyto"));
+		
+		//	DEFAULT EMAIL MARKETING SYNC LISTS FEATURE OPTIONS
 		add_filter("default_option_vbout_sync_emaillist", array(__CLASS__, "defaultSyncEmailList"));
+		
+		//	DEFAULT DOMAIN TRACKING CODE INJECTION
+		add_filter("default_option_vbout_tracking_activated", array(__CLASS__, "defaultTrackingActivated"));
+		add_filter("default_option_vbout_tracking_domain", array(__CLASS__, "defaultTrackingDomain"));
+		add_filter("default_option_vbout_tracking_code", array(__CLASS__, "defaultTrackingCode"));
 		
 		//	OTHER DEFAULT VALUES
 		add_filter("default_option_vbout_plugin_version", array(__CLASS__, "defaultVersion"));
 
+		///	DEPRECATED AND NOT USED ANYMORE
 		//add_filter("default_option_vbout_acc_timezone", array(__CLASS__, "defaultTimezone"));
 		//add_filter("default_option_vbout_acc_business", array(__CLASS__, "defaultBusiness"));
 		
 		/////////////////////////////////////////////////////////////////////////////////////
 		if (current_user_can("administrator")):
-			foreach (self::$options as $option):
-				$key = "vbout_{$option}";
+			foreach (self::$options as $optionKey => $optionVars):
+				foreach($optionVars as $optionVar):
+					$key = "vbout_{$optionVar}";
 
-				if (get_option($key, "@unset") === "@unset"):
-					add_option($key, get_option($key));
-				endif;
+					if (get_option($key, "@unset") === "@unset"):
+						add_option($key, get_option($key));
+					endif;
 
-				register_setting("vbout-settings", $key);
+					register_setting("vbout-".$optionKey, $key);
+				endforeach;
 			endforeach;
 		endif;
 		/////////////////////////////////////////////////////////////////////////////////////
 	}
-	
-	public static function defaultBusiness($default = null) 
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	//	LIST OF DEFAULT OPTIONS INITIALIZATION METHODS										+
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	/////////////////////////////////////////////////////////////////////////////////////////
+	public static function defaultStatus($default = null) 
 	{
 		if ($default) 
 			return $default;
 
-		return "<span style='color: red;'>NOT CONNECTED</span>";
+		return self::VBOUT_STATUS_DISACTIVE;
 	}
+	
+	public static function defaultMethod($default = null) 
+	{
+		if ($default) 
+			return $default;
 
+		return self::VBOUT_METHOD_USERKEY;
+	}
+	
 	public static function defaultAppKey($default = null) 
 	{
 		if ($default) 
@@ -88,8 +189,64 @@ class VboutWP {
 
 		return "";
 	}
+	
+	public static function defaultUserKey($default = null) 
+	{
+		if ($default) 
+			return $default;
 
-	public static function defaultSyncEmailList($default = null) 
+		return "";
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public static function defaultPluginAvailability($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return self::VBOUT_AVAILABLE_BOTH;
+	}
+	
+	public static function defaultPluginAttachment($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return self::VBOUT_ATTACH_EVERYWHERE;
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public static function defaultSocialMediaActivated($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return TRUE;
+	}
+	
+	public static function defaultSocialMediaChannels($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return serialize(array("Facebook"=>array(),"Twitter"=>array(),"Linkedin"=>array()));
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public static function defaultEmailMarketingActivated($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return TRUE;
+	}
+	
+	public static function defaultEmailMarketingLists($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return serialize(array());
+	}
+
+	public static function defaultCampaignSubject($default = null) 
 	{
 		if ($default) 
 			return $default;
@@ -97,42 +254,103 @@ class VboutWP {
 		return "";
 	}
 
+	public static function defaultCampaignFromEmail($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+
+	public static function defaultCampaignFromName($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+
+	public static function defaultCampaignReplyto($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public static function defaultSyncEmailList($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public static function defaultTrackingActivated($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return FALSE;
+	}
+	
+	public static function defaultTrackingDomain($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+
+	public static function defaultTrackingCode($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	public static function defaultVersion($default = null) {
 		if ($default)
 			return $default;
 
 		return self::PLUGIN_VERSION;
 	}
+	//	+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	/////////////////////////////////////////////////////////////////////////////////////////
 
-	public static function defaultTimezone($default = null) {
-		if ($default)
-			return $default;
-
-		return self::DEFAULT_TIMEZONE;
+	public static function initializeFilters() 
+	{
+		///	ADDING VBOUT MENU TO WORDPRESS LEFT SIDEBAR
+		add_action('admin_menu', array(__CLASS__, 'admin_menu'));
+		
+		//add_action('wp_dashboard_setup', array(__CLASS__, 'wp_dashboard_setup'));
+		//add_action('widgets_init', array(__CLASS__, 'widgets_init'));
 	}
-	
-	public static function adminInit() {
 
+	public static function adminInit() 
+	{
+		///	STUPID INITIATION I DON'T KNOW WHY I PUT IT THERE BUT WHAT THE HELL... LEAVE IT!!!
 		if (get_option("vbout_plugin_version") != self::PLUGIN_VERSION)
 			update_option("vbout_plugin_version", self::PLUGIN_VERSION);
-			
-		if (get_option("vbout_acc_business") == NULL)
-			update_option("vbout_acc_business", "<span style='color: red;'>NOT CONNECTED</span>");
 		
-		if (get_option("vbout_acc_timezone") == NULL)
-			update_option("vbout_acc_timezone", self::DEFAULT_TIMEZONE);
-			
 		// JavaScript
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('jquery-ui-core');
 		wp_enqueue_script('jquery-ui-datepicker');
 		
 		wp_enqueue_script('vb-jschosen-dropbox', VBOUT_URL.'/js/chosen.jquery.min.js', array( 'jquery' ));
-		//wp_enqueue_script( 'hasp-js', HASP_URL.'/js/script.js', array( 'jquery' ), '1.0', true );
+		wp_enqueue_script('vb-core-script', VBOUT_URL.'/js/vbout-core.js', array( 'jquery', 'vb-jschosen-dropbox' ));
 		
 		// CSS
 		wp_enqueue_style('jquery-ui-css', '//ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
 		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
+		
+		//	APPEND TRACKING TO FOOTER IF ENABLED
+		$tracking_enabled = get_option('vbout_tracking_activated');
+		if ($tracking_enabled) {
+			add_action('wp_footer', array(__CLASS__, 'embed_tracking_code'));
+		}
 	}
 	
 	public static function sendToVbout()
@@ -233,61 +451,585 @@ class VboutWP {
 		exit;
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////
+	public static function updateExtraOptions()
+	{
+		if (isset($_POST['option_page']) && $_POST['option_page'] == 'vbout-settings') {
+			///... SAVE DEFAULT FACEBOOK PAGES
+			///		\_ REMOVE ALL DEFAULT FIRST
+			$channels 	= unserialize(get_option('vbout_sm_channels'));
+			$channels['default'] = array();
+			
+			if (isset($_POST['vbout_sm_channels_facebook']) && $_POST['vbout_sm_channels_facebook'] != NULL) {
+				foreach($_POST['vbout_sm_channels_facebook'] as $page)
+					$channels['default']['Facebook'][] = $page;
+			}
+			///... SAVE DEFAULT TWITTER PROFILES
+			///		\_ REMOVE ALL DEFAULT FIRST
+			if (isset($_POST['vbout_sm_channels_twitter']) && $_POST['vbout_sm_channels_twitter'] != NULL) {
+				foreach($_POST['vbout_sm_channels_twitter'] as $profile)
+					$channels['default']['Twitter'][] = $profile;
+			}
+			///... SAVE DEFAULT LINKEDIN PROFILES
+			///		\_ REMOVE ALL DEFAULT FIRST
+			if (isset($_POST['vbout_sm_channels_linkedin']) && $_POST['vbout_sm_channels_linkedin'] != NULL) {
+				foreach($_POST['vbout_sm_channels_linkedin'] as $profile)
+					$channels['default']['Linkedin'][] = $profile;
+			}
+			
+			update_option("vbout_sm_channels", serialize($channels));
+			///... SAVE DEFAULT LISTS
+			///		\_ REMOVE ALL DEFAULT FIRST
+			$lists 		= unserialize(get_option('vbout_em_lists'));
+			$lists['default'] = array();
+			
+			if (isset($_POST['vbout_em_lists']) && $_POST['vbout_em_lists'] != NULL) {
+				foreach($_POST['vbout_em_lists'] as $list)
+					$lists['default'][] = $list;
+			}
+			
+			update_option("vbout_em_lists", serialize($lists));
+		}
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
 	public static function checkApiStatus()
 	{
-		if ((isset($_POST['vbout_appkey']) && $_POST['vbout_appkey'] != NULL) && 
-			(isset($_POST['vbout_clientsecret']) && $_POST['vbout_clientsecret'] != NULL) && 
-			(isset($_POST['vbout_authtoken']) && $_POST['vbout_authtoken'] != NULL)) {
+		if (isset($_POST['vbout_method']) && $_POST['vbout_method'] != NULL) {
+			if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
+				$app_key = array(
+					'key' => $_POST['vbout_userkey']
+				);
+			} elseif ($_POST['vbout_method'] == self::VBOUT_METHOD_APPKEY) {
+				$app_key = array(
+					'app_key' => $_POST['vbout_appkey'],
+					'client_secret' => $_POST['vbout_clientsecret'],
+					'oauth_token' => $_POST['vbout_authtoken']
+				);
+			}
 			
-			$app_key = array(
-				'app_key' => $_POST['vbout_appkey'],
-				'client_secret' => $_POST['vbout_clientsecret'],
-				'oauth_token' => $_POST['vbout_authtoken']
-			);
-			
-			if (get_option("vbout_api_status_checksum") != base64_encode(serialize($app_key))) {
-				update_option("vbout_api_status_checksum", base64_encode(serialize($app_key)));
+			///if (get_option("vbout_api_status_checksum") != base64_encode(serialize($app_key))) {
+			///	update_option("vbout_api_status_checksum", base64_encode(serialize($app_key)));
 				
 				$app = new ApplicationWS($app_key);
 		
 				$results = $app->getBusinessInfo();
 
 				if (isset($results['errorMessage'])) {
-					//'<div id="message" class="error"><p><strong>'..'</strong></p></div>'
-					update_option("vbout_api_status_flag", "false");
-					update_option("vbout_api_status_error", $results['errorMessage']);
-				} else {
-					update_option("vbout_api_status_flag", "true");
-					update_option("vbout_api_status_error", "");
+					update_option("vbout_status", self::VBOUT_STATUS_DISACTIVE);
 					
-					update_option("vbout_acc_business", $results['businessName']);
-					update_option("vbout_acc_timezone", $results['timezone']);
+					$message = array(
+						'type'=>'error',
+						'message'=>$results['errorMessage']
+					);
+					
+					update_option("vbout_flash_message", serialize($message));
+				} else {
+					update_option("vbout_status", self::VBOUT_STATUS_ACTIVE);
+					update_option("vbout_api_business", serialize($results));
+					
+					$message = array(
+						'type'=>'updated',
+						'message'=>__( 'Connect to Vbout succeeded.', 'vblng' )
+					);
+					
+					update_option("vbout_flash_message", serialize($message));
+					
+					///	UPDATE DEFAULT VARIABLES FROM VBOUT
+					$sm = new SocialMediaWS($app_key);
+
+					//	GET VBOUT CHANNELS
+					$channels = $sm->getChannels();
+					$defaultChannels = array("Facebook"=>array(),"Twitter"=>array(),"Linkedin"=>array(), "default"=>array());
+					
+					if (isset($channels['Facebook']) && $channels['Facebook']['count'] > 0) {
+						foreach($channels['Facebook']['pages'] as $page)
+							$defaultChannels['Facebook'][] = array('value'=>$page['id'], 'label'=>$page['name'], 'default'=>false);
+					}
+
+					if (isset($channels['Twitter']) && $channels['Twitter']['count'] > 0) {
+						foreach($channels['Twitter']['profiles'] as $profile)
+							$defaultChannels['Twitter'][] = array('value'=>$profile['id'], 'label'=>$profile['fullname'], 'default'=>false);
+					}
+					
+					if (isset($channels['Linkedin']) && $channels['Linkedin']['count'] > 0) {
+						foreach($channels['Linkedin']['profiles'] as $profile)
+							$defaultChannels['Linkedin'][] = array('value'=>$profile['id'], 'label'=>$profile['fullname'], 'default'=>false);
+					}
+
+					update_option("vbout_sm_channels", serialize($defaultChannels));
+					////////////////////////////////////////////////////////////////////////////////////
+
+					$em = new EmailMarketingWS($app_key);
+
+					//	GET VBOUT LISTS
+					$lists = $em->getMyLists();
+					$defaultLists = array('lists'=>array(), 'default'=>array(), 'sync'=>array());
+					
+					if (isset($lists['count']) && $lists['count'] > 0) {
+						foreach($lists['items'] as $list)
+							$defaultLists['lists'][] = array('value'=>$list['id'], 'label'=>$list['name'], 'default'=>false, 'sync'=>false);
+					}
+					
+					update_option("vbout_em_lists", serialize($defaultLists));
+					
+					/*
+					$trk = new WebsiteTrackWS($app_key);
+					
+					$domains = $trk->getDomains();
+					$defaultDomains = array();
+					
+					if (isset($domains['count']) && $domains['count'] > 0) {
+						foreach($domains['items'] as $domain)
+							$defaultDomains[] = array('id'=>$domain['id'], 'url'=>$domain['url'], 'code'=>$domain['code']);
+					}
+					
+					update_option("vbout_tracking_domain", serialize($defaultDomains));
+					*/
 				}
-			}
+				
+				update_option("vbout_method", $_POST['vbout_method']);
+
+				update_option("vbout_userkey", $_POST['vbout_userkey']);
+				update_option("vbout_appkey", $_POST['vbout_appkey']);
+				update_option("vbout_clientsecret", $_POST['vbout_clientsecret']);
+				update_option("vbout_authtoken", $_POST['vbout_authtoken']);
+				
+				//GOTO SETTINGS IF NOT FAILED
+				if (!isset($results['errorMessage'])) {
+					header('location: '.get_admin_url().'admin.php?page=vbout-settings');
+					exit;
+				}
+			///}
 		}
 	}
+	/////////////////////////////////////////////////////////////////////////////////////////
 
 	static function admin_menu() 
 	{
 		global $wp_version;
 
-		add_menu_page('Vbout Settings', 'Vbout Settings', 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), "https://www.vbout.com/images/wp-logo.png?new", 81);
-		add_submenu_page('non-existed-page', 'Vbout Schedule', 'Vbout Schedule', 'manage_options', 'vbout-schedule', array(__CLASS__, 'admin_schedule_page'));
+		///	VBOUT OPTION PAGE
+		$plugin_status = get_option('vbout_status');
 		
-		//	ADD CUSTOM LINKS TO DIFFERENT AREAS
-		add_filter('post_row_actions', array(__CLASS__, 'add_vbout_options'), 10, 2);
-		add_filter('page_row_actions', array(__CLASS__, 'add_vbout_options'), 10, 2);
+		if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
+		} elseif ($plugin_status == self::VBOUT_STATUS_ACTIVE) {
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
+		}
 		
-		// ADD CUSTOM BOXES TO DIFFERENT AREAS
-		add_action('add_meta_boxes', array(__CLASS__, 'add_vbout_meta_box'));
+		///	PLUGIN GENERAL SETTINGS
+		$plugin_availability = get_option('vbout_plugin_availability');
+		$plugin_attachment = get_option('vbout_plugin_attachment');
 		
-		// ADD ACTIONS AFTER SAVE/UPDATE/EDIT/ETC....
-		add_action('save_post', array(__CLASS__, 'send_vbout_queries'));
+		$socialMediaActivated = get_option('vbout_sm_activated');
+		$emailMarketingActivated = get_option('vbout_em_activated');
 		
-		// Adds the action to the hook
-		add_action('admin_notices', array(__CLASS__, 'vbout_custom_notices'));
+		if (in_array($plugin_attachment, array(self::VBOUT_ATTACH_EVERYWHERE, self::VBOUT_ATTACH_MENUONLY)) && ($socialMediaActivated || $emailMarketingActivated)) {
+			add_submenu_page('non-existed-page', 'Vbout Schedule', 'Vbout Schedule', 'manage_options', 'vbout-schedule', array(__CLASS__, 'admin_schedule_page'));
+			
+			if (in_array($plugin_availability, array(self::VBOUT_AVAILABLE_BOTH, self::VBOUT_AVAILABLE_POSTONLY))) {
+				add_filter('post_row_actions', array(__CLASS__, 'add_extra_options'), 10, 2);
+			}
+			
+			if (in_array($plugin_availability, array(self::VBOUT_AVAILABLE_BOTH, self::VBOUT_AVAILABLE_PAGEONLY))) {
+				add_filter('page_row_actions', array(__CLASS__, 'add_extra_options'), 10, 2);
+			}
+		}
+		
+		if (in_array($plugin_attachment, array(self::VBOUT_ATTACH_EVERYWHERE, self::VBOUT_ATTACH_FORMONLY)) && ($socialMediaActivated || $emailMarketingActivated)) {
+			if (in_array($plugin_availability, array(self::VBOUT_AVAILABLE_BOTH, self::VBOUT_AVAILABLE_POSTONLY))) {
+				if ( current_user_can( 'publish_posts' ) ) {
+					add_meta_box('vbou_meta_box', __('Schedule this Post on Vbout?', 'vbout'), array(__CLASS__, 'vbout_meta_box'), 'post', 'normal', 'default');
+				}
+			}
+			
+			if (in_array($plugin_availability, array(self::VBOUT_AVAILABLE_BOTH, self::VBOUT_AVAILABLE_PAGEONLY))) {
+				if ( current_user_can( 'publish_posts' ) ) {
+					add_meta_box('vbou_meta_box', __('Schedule this Page on Vbout?', 'vbout'), array(__CLASS__, 'vbout_meta_box'), 'page', 'normal', 'default');
+				}
+			}
+			
+			/// ADD ACTIONS AFTER SAVE/UPDATE/EDIT/ETC....
+			add_action('save_post', array(__CLASS__, 'send_vbout_queries'));
+		}
+		
+		/// Adds the action to the hook
+		//add_action('admin_notices', array(__CLASS__, 'vbout_custom_notices'));
 	}
+
+	///////////////////////////////////////////////////////////////////////////////////////	
+	static function add_extra_options($actions, $page_object)
+	{
+		//WP_Post Object ( [ID] => 1 [post_author] => 1 [post_date] => 2014-12-26 13:23:30 [post_date_gmt] => 2014-12-26 13:23:30 [post_content] => Welcome to WordPress. This is your first post. Edit or delete it, then start blogging! [post_title] => Hello world! [post_excerpt] => [post_status] => publish [comment_status] => open [ping_status] => open [post_password] => [post_name] => hello-world [to_ping] => [pinged] => [post_modified] => 2014-12-26 13:23:30 [post_modified_gmt] => 2014-12-26 13:23:30 [post_content_filtered] => [post_parent] => 0 [guid] => http://localhost/wpplugin/?p=1 [menu_order] => 0 [post_type] => post [post_mime_type] => [comment_count] => 1 [filter] => raw )
+		$actions['vbout_link'] = '<a href="'.get_admin_url().'admin.php?page=vbout-schedule&id='.$page_object->ID.'">Schedule on Vbout</a>';
+	 
+	   return $actions;
+	}
+	///////////////////////////////////////////////////////////////////////////////////////
 	
+	///////////////////////////////////////////////////////////////////////////////////////	
+	static function embed_tracking_code()
+	{
+		// Ignore admin, feed, robots or trackbacks
+		if (is_admin() OR is_feed() OR is_robots() OR is_trackback()) {
+			return;
+		}
+		
+		$tracking_code = get_option('vbout_tracking_code');
+		if (empty($tracking_code) || trim($tracking_code) == '') {
+			return;
+		}
+		
+		// Output
+		echo stripslashes($tracking_code);
+	}
+	///////////////////////////////////////////////////////////////////////////////////////	
+	
+	static function admin_options_page() 
+	{
+		$input_fields = array();
+		$hidden_fields = "";
+		
+		$plugin_status = get_option('vbout_status');
+		$plugin_method = get_option('vbout_method');
+		
+		$form_name = "vbout-update-options";
+		$form_page = "settings";
+		$form_title = __( 'Vbout Plugin Settings', 'vblng' );
+		
+		$submit_button = __( 'Save Changes', 'vblng' );
+		
+		//sprintf('<h1 style="color: red; margin: 0;">%1$s*</h1>', __('Protection Inactive', 'vblng'))
+		
+		if ($plugin_status == self::VBOUT_STATUS_DISACTIVE) {
+			$input_fields = implode("\n", array(
+				self::template('form_objects/header', array(
+					'header' => __( 'Connect to Vbout API', 'vblng' ),
+					'description' => __( 'You are currently not connected to Vbout API, please use one of the following methods to connect before you are able to continue.', 'vblng' )
+				)),
+				
+				self::template('form_objects/slider', array(
+					'sliderId' => "UserKeySlider",
+					'description' => __( '- If you have a <strong style="color: red">[User Key]</strong>, please click <a class="sliderButton" data-method="0" data-slider="UserKeySlider" href="javascript://">here</a>.', 'vblng' ),
+					'form_fields' => implode("\n", array(
+						self::template('form_objects/text', array(
+							'key' => 'vbout_userkey',
+							'name' => __( 'My User Key', 'vblng' ),
+							'value' => esc_attr(get_option('vbout_userkey')),
+							'description' => implode('<br />', array(
+								implode('&nbsp;&nbsp;', array(__( 'Your Vbout account User Key.', 'vblng' )))
+							))
+						))
+					))
+				)),
+				
+				self::template('form_objects/slider', array(
+					'sliderId' => "AppKeySlider",
+					'description' => __( '- If you have an <strong style="color: red">[Application Key]</strong>, please click <a class="sliderButton" data-method="1" data-slider="AppKeySlider" href="javascript://">here</a>.', 'vblng' ),
+					'form_fields' => implode("\n", array(
+						self::template('form_objects/text', array(
+							'key' => 'vbout_appkey',
+							'name' => __( 'Application Key', 'vblng' ),
+							'value' => esc_attr(get_option('vbout_appkey')),
+							'description' => implode('<br />', array(
+								implode('&nbsp;&nbsp;', array(__( 'Your application key.', 'vblng' )))
+							))
+						)),
+						
+						self::template('form_objects/text', array(
+							'key' => 'vbout_clientsecret',
+							'name' => __( 'Client Secret', 'vblng' ),
+							'value' => esc_attr(get_option('vbout_clientsecret')),
+							'description' => implode('<br />', array(
+								implode('&nbsp;&nbsp;', array(__( 'Client secret of your application.', 'vblng' )))
+							))
+						)),
+						
+						self::template('form_objects/text', array(
+							'key' => 'vbout_authtoken',
+							'name' => __( 'Authentication Token', 'vblng' ),
+							'value' => esc_attr(get_option('vbout_authtoken')),
+							'description' => implode('<br />', array(
+								implode('&nbsp;&nbsp;', array(__( 'Authentication token of your application.', 'vblng' )))
+							))
+						))
+					))
+				))
+			));
+			
+			$hidden_fields .= implode(PHP_EOL, array(
+				'<input type="hidden" name="vbout_method" value="'.get_option('vbout_method').'" />'
+			));
+			
+			$submit_button = __( 'Connect to Vbout', 'vblng' );
+			
+			$form_name = "vbout-connect";
+			$form_page = "connect";
+			$form_title = __( 'Vbout Connect Settings', 'vblng' );
+			
+		} elseif ($plugin_status == self::VBOUT_STATUS_LOCKED) {
+			//__( 'Save Changes', 'vblng' )
+		} elseif ($plugin_status == self::VBOUT_STATUS_ACTIVE) {
+			$channels 	= unserialize(get_option('vbout_sm_channels'));
+			$lists 		= unserialize(get_option('vbout_em_lists'));
+			$domains 	= unserialize(get_option('vbout_tracking_domain'));
+			
+			$settings_tabs_header = array(
+				'general' => __( 'General', 'vblng' ), 
+				'social_media' => __( 'Social Media', 'vblng' ),
+				'email_marketing' => __( 'Email Marketing', 'vblng' ),
+				'tracking' => __( 'Site Tracking', 'vblng' )
+			);
+			
+			$current_tab = isset($_REQUEST['tab'])?$_REQUEST['tab']:'general';
+			$settings_tabs = array();
+			
+			$settings_tabs['general'] = implode("\n", array(
+				self::template('form_objects/header', array(
+					'header' => $settings_tabs_header['general'],
+					'description' => __( 'Please choose where you want the plugin to attached inside the dashboard:', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'key' => 'vbout_plugin_availability',
+					'name' => __( 'Activate this Plugin for', 'vblng' ),
+					'options' => array(
+						array('label' => __( 'Both (Posts and Pages)', 'vblng' ), 'value' => self::VBOUT_AVAILABLE_BOTH),
+						array('label' => __( 'Posts Only', 'vblng' ), 'value' => self::VBOUT_AVAILABLE_POSTONLY),
+						array('label' => __( 'Pages Only', 'vblng' ), 'value' => self::VBOUT_AVAILABLE_PAGEONLY),
+					),
+					'value' => esc_attr(get_option('vbout_plugin_availability')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array('Choose where the plugin is available.'))
+					))
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'key' => 'vbout_plugin_attachment',
+					'name' => __( 'Attach this Plugin on', 'vblng' ),
+					'options' => array(
+						array('label' => __( 'Both (Quick Menu and Inside Forms)', 'vblng' ), 'value' => self::VBOUT_ATTACH_EVERYWHERE),
+						array('label' => __( 'Quick Menu Only', 'vblng' ), 'value' => self::VBOUT_ATTACH_MENUONLY),
+						array('label' => __( 'Inside Forms Only', 'vblng' ), 'value' => self::VBOUT_ATTACH_FORMONLY),
+					),
+					'value' => esc_attr(get_option('vbout_plugin_attachment')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array('Choose where the plugin is attached.'))
+					))
+				)),
+			));
+
+			$settings_tabs['social_media'] = implode("\n", array(
+				/////////////////////////////////////////////////////////////////////////////////////////
+				///	SOCIAL MEDIA SETTINGS
+				self::template('form_objects/header', array(
+					'header' => $settings_tabs_header['social_media'],
+					'description' => __( 'Please choose default setting for social media:', 'vblng' )
+				)),
+				
+				self::template('form_objects/radio', array(
+					'options' => array(
+						array('label' => __( 'Yes', 'vblng' ), 'value' => true),
+						array('label' => __( 'No', 'vblng' ), 'value' => false)
+					),
+
+					'key' => 'vbout_sm_activated',
+					'name' => __( 'Activate Social Media', 'vblng' ),
+					'value' => get_option('vbout_sm_activated'),
+					'description' => __( 'Whether or not to scheduled posts on social media.', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'multiple' => true,
+					'class' => 'chosen-select',
+					'options' => $channels['Facebook'],
+					'key' => 'vbout_sm_channels_facebook',
+					'name' => __( 'Facebook Pages', 'vblng' ),
+					'value' => isset($channels['default']['Facebook'])?$channels['default']['Facebook']:array(),
+					'description' => __( 'Choose which Facebook page(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All pages will be shown if none chosen.</span>', 'vblng' )
+				)),
+				
+				
+				self::template('form_objects/dropdown', array(
+					'multiple' => true,
+					'class' => 'chosen-select',
+					'options' => $channels['Twitter'],
+					'key' => 'vbout_sm_channels_twitter',
+					'name' => __( 'Twitter Profiles', 'vblng' ),
+					'value' => isset($channels['default']['Twitter'])?$channels['default']['Twitter']:array(),
+					'description' => __( 'Choose which Twitter profile(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'multiple' => true,
+					'class' => 'chosen-select',
+					'options' => $channels['Linkedin'],
+					'key' => 'vbout_sm_channels_linkedin',
+					'name' => __( 'Linkedin Profiles', 'vblng' ),
+					'value' => isset($channels['default']['Linkedin'])?$channels['default']['Linkedin']:array(),
+					'description' => __( 'Choose which Linkedin profile(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
+				)),
+			));
+				/////////////////////////////////////////////////////////////////////////////////////////
+				
+			$settings_tabs['email_marketing'] = implode("\n", array(
+				/////////////////////////////////////////////////////////////////////////////////////////
+				///	EMAIL MARKETING SETTINGS
+				self::template('form_objects/header', array(
+					'header' => $settings_tabs_header['email_marketing'],
+					'description' => __( 'Please choose default setting for email marketing:', 'vblng' )
+				)),
+				
+				self::template('form_objects/radio', array(
+					'options' => array(
+						array('label' => __( 'Yes', 'vblng' ), 'value' => true),
+						array('label' => __( 'No', 'vblng' ), 'value' => false)
+					),
+
+					'key' => 'vbout_em_activated',
+					'name' => __( 'Activate Email Marketing', 'vblng' ),
+					'value' => get_option('vbout_em_activated'),
+					'description' => __( 'Whether or not to scheduled campaigns on email marketing.', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'multiple' => true,
+					'class' => 'chosen-select',
+					'options' => $lists['lists'],
+					'key' => 'vbout_em_lists',
+					'name' => __( 'Subscriber\'s Lists', 'vblng' ),
+					'value' => $lists['default'],
+					'description' => __( 'Choose which list(s) you want to be shown in the scheduled campaign menu. <br /><span style="color: red;">Note: All lists will be shown if none chosen.</span>', 'vblng' )
+				)),
+				
+				self::template('form_objects/text', array(
+					'key' => 'vbout_em_emailsubject',
+					'name' => __( 'Default Email Subject', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_em_emailsubject')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Enter the default email subject here if you want it to be same in every campaign.', 'vblng' )))
+					))
+				)),
+				
+				self::template('form_objects/text', array(
+					'key' => 'vbout_em_fromemail',
+					'name' => __( 'Default From Email', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_em_fromemail')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Enter the default from email here if you want it to be same in every campaign.', 'vblng' )))
+					))
+				)),
+				
+				self::template('form_objects/text', array(
+					'key' => 'vbout_em_fromname',
+					'name' => __( 'Default From Name', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_em_fromname')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Enter the default from name here if you want it to be same in every campaign.', 'vblng' )))
+					))
+				)),
+				
+				self::template('form_objects/text', array(
+					'key' => 'vbout_em_replyto',
+					'name' => __( 'Default Reply to', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_em_replyto')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Enter the default reply to email here if you want it to be same in every campaign.', 'vblng' )))
+					))
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'key' => 'vbout_sync_emaillist',
+					'name' => __( 'Users Synchronization List', 'vblng' ),
+					'options' => $lists['lists'],
+					'value' => esc_attr(get_option('vbout_sync_emaillist')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array('Choose which list you want wordpress users to be synchronized to.'))
+					))
+				)),
+				/////////////////////////////////////////////////////////////////////////////////////////
+			));
+
+			$settings_tabs['tracking'] = implode("\n", array(
+				/////////////////////////////////////////////////////////////////////////////////////////
+				///	SITE TRACKING SETTINGS
+				self::template('form_objects/header', array(
+					'header' => $settings_tabs_header['tracking'],
+					'description' => __( 'Please choose default setting for site tracking:', 'vblng' )
+				)),
+				
+				self::template('form_objects/radio', array(
+					'options' => array(
+						array('label' => __( 'Yes', 'vblng' ), 'value' => true),
+						array('label' => __( 'No', 'vblng' ), 'value' => false)
+					),
+
+					'key' => 'vbout_tracking_activated',
+					'name' => __( 'Activate Site Tracking', 'vblng' ),
+					'value' => get_option('vbout_tracking_activated'),
+					'description' => __( 'Whether or not to put Vbout site tracking code inside footer.', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'key' => 'vbout_tracking_domain',
+					'name' => __( 'Site Domains', 'vblng' ),
+					'options' => $domains,
+					'value' => esc_attr(get_option('vbout_tracking_domain')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array('Choose which domain you want tracking code to be included.'))
+					))
+				)),
+				
+				self::template('form_objects/textarea', array(
+					'key' => 'vbout_tracking_code',
+					'name' => __( 'Vbout Site Tracking Code', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_tracking_code')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Here you can edit the Tracking code.', 'vblng' )))
+					))
+				)),
+				/////////////////////////////////////////////////////////////////////////////////////////
+			));
+			
+			$input_fields = self::template('form_objects/tabs', array(
+				'tab_headers' => $settings_tabs_header,
+				'current_tab' => $current_tab,
+				'settings_tabs' => $settings_tabs
+			));
+		}
+	
+		///	FIXED HIDDEN FIELDS
+		$hidden_fields .= implode(PHP_EOL, array(
+			'<input type="hidden" name="option_page" value="vbout-'.$form_page.'" />',
+			'<input type="hidden" name="action" value="update" />',
+			wp_nonce_field('vbout-'.$form_page.'-options', '_wpnonce', true, false)
+		));
+		
+		///	FIXED FLASH MESSAGES
+		if (get_option("vbout_flash_message") !== FALSE) {
+			$message = unserialize(get_option("vbout_flash_message"));
+			
+			$flash_message = implode(PHP_EOL, array(
+				'<div id="message" class="'.$message['type'].'"><p><strong>'.$message['message'].'</strong></p></div>'
+			));
+			
+			//	REMOVE THE STUPID MESSAGE FROM DB
+			update_option("vbout_flash_message", '');
+		}
+
+		///	FINALY RENDER THE FORM
+		echo self::template('form_objects/form', compact('input_fields', 'hidden_fields', 'flash_message') + array(
+			'id' => $form_name,
+			'title' => $form_title,
+			'icon' => 'icon-users',
+
+			'submit' => $submit_button,
+			'cancel' => __( 'Reset', 'vblng' )
+		));
+	}
+
 	static function vbout_custom_notices()
 	{
 		if (isset($_SESSION['vb_custom_error'])) {
@@ -395,143 +1137,29 @@ class VboutWP {
 		}
 	}
 	
-	static function add_vbout_meta_box()
-	{
-		if ( current_user_can( 'publish_posts' ) ) {
-			$post_types = get_post_types();
-			
-			foreach( $post_types as $post_type )
-			{
-				add_meta_box('vbou_meta_box', __('Schedule this '.ucfirst($post_type).' on Vbout?', 'vbout'), array(__CLASS__, 'vbout_meta_box'), $post_type, 'normal', 'default');
-			}
-		}
-	}
-	
 	static function vbout_meta_box()
 	{
-		$app_key = array(
-			'app_key' => esc_attr(get_option('vbout_appkey')),
-			'client_secret' => esc_attr(get_option('vbout_clientsecret')),
-			'oauth_token' => esc_attr(get_option('vbout_authtoken'))
-		);
+		$socialMediaActivated = get_option('vbout_sm_activated');
+		$emailMarketingActivated = get_option('vbout_em_activated');
 		
-		$sm = new SocialMediaWS($app_key);
-
-		//	GET VBOUT CHANNELS
-		$channels = $sm->getChannels(); 		
-		
-		$em = new EmailMarketingWS($app_key);
-
-		//	GET VBOUT LISTS
-		$lists = $em->getMyLists();
+		$channels 	= unserialize(get_option('vbout_sm_channels'));
+		$lists 		= unserialize(get_option('vbout_em_lists'));
 		
 		require VBOUT_DIR.'/includes/meta_box.php';
 	}
 	
-	static function add_vbout_options($actions, $page_object)
-	{
-		//WP_Post Object ( [ID] => 1 [post_author] => 1 [post_date] => 2014-12-26 13:23:30 [post_date_gmt] => 2014-12-26 13:23:30 [post_content] => Welcome to WordPress. This is your first post. Edit or delete it, then start blogging! [post_title] => Hello world! [post_excerpt] => [post_status] => publish [comment_status] => open [ping_status] => open [post_password] => [post_name] => hello-world [to_ping] => [pinged] => [post_modified] => 2014-12-26 13:23:30 [post_modified_gmt] => 2014-12-26 13:23:30 [post_content_filtered] => [post_parent] => 0 [guid] => http://localhost/wpplugin/?p=1 [menu_order] => 0 [post_type] => post [post_mime_type] => [comment_count] => 1 [filter] => raw )
-		$actions['vbout_link'] = '<a href="'.get_admin_url().'admin.php?page=vbout-schedule&id='.$page_object->ID.'">Schedule on Vbout</a>';
-	 
-	   return $actions;
-	}
-	
 	static function admin_schedule_page()
 	{
-		$app_key = array(
-			'app_key' => esc_attr(get_option('vbout_appkey')),
-			'client_secret' => esc_attr(get_option('vbout_clientsecret')),
-			'oauth_token' => esc_attr(get_option('vbout_authtoken'))
-		);
+		$socialMediaActivated = get_option('vbout_sm_activated');
+		$emailMarketingActivated = get_option('vbout_em_activated');
 		
-		$sm = new SocialMediaWS($app_key);
-
-		//	GET VBOUT CHANNELS
-		$channels = $sm->getChannels(); 		
-
-		$em = new EmailMarketingWS($app_key);
-
-		//	GET VBOUT LISTS
-		$lists = $em->getMyLists();
+		$channels 	= unserialize(get_option('vbout_sm_channels'));
+		$lists 		= unserialize(get_option('vbout_em_lists'));
 		
 		require VBOUT_DIR.'/includes/meta_box2.php';
 	}
 	
-	static function admin_options_page() 
-	{
-		$emaillists = array();
-		
-		$input_fields = implode("\n", array(
-			self::template('settings_form/header', array(
-				'header' => 'API Authentication Settings'.' ('.get_option('vbout_acc_business').')',
-				'description' => 'You have to assign authentication keys before you can able to use this plugin.'
-			)),
-			
-			self::template('settings_form/text', array(
-				'key' => 'vbout_appkey',
-				'name' => 'Application Key',
-				'value' => esc_attr(get_option('vbout_appkey')),
-				'description' => implode('<br />', array(
-					implode('&nbsp;&nbsp;', array('Your application key.'))
-				))
-			)),
-			
-			self::template('settings_form/text', array(
-				'key' => 'vbout_clientsecret',
-				'name' => 'Client Secret',
-				'value' => esc_attr(get_option('vbout_clientsecret')),
-				'description' => implode('<br />', array(
-					implode('&nbsp;&nbsp;', array('Client secret of your application.'))
-				))
-			)),
-			
-			self::template('settings_form/text', array(
-				'key' => 'vbout_authtoken',
-				'name' => 'Authentication Token',
-				'value' => esc_attr(get_option('vbout_authtoken')),
-				'description' => implode('<br />', array(
-					implode('&nbsp;&nbsp;', array('Authentication token of your application.'))
-				))
-			)),
-			
-			self::template('settings_form/header', array(
-				'header' => 'Synchronize Users',
-				'description' => 'Synchronize Wordpress Users to Vbout email list.'
-			)),
-			
-			self::template('settings_form/dropdown', array(
-				'key' => 'vbout_sync_emaillist',
-				'name' => 'Vbout Lists',
-				'options' => $emaillists,
-				'value' => get_option('vbout_sync_emaillist'),
-				'description' => implode('<br />', array(
-					implode('&nbsp;&nbsp;', array('Choose the list that you want to synchronize with.'))
-				))
-			)),
-			
-		));
-		
-		$hidden_fields = implode(PHP_EOL, array(
-			'<input type="hidden" name="option_page" value="vbout-settings" />',
-			'<input type="hidden" name="action" value="update" />',
-			wp_nonce_field('vbout-settings-options', '_wpnonce', true, false)
-		));
-		
-		//CHECK API STATUS
-		if (get_option("vbout_api_status_flag") == "false")
-			$api_status = implode(PHP_EOL, array(
-				'<div id="message" class="error"><p><strong>'.get_option("vbout_api_status_error").'</strong></p></div>'
-			));
-
-		echo self::template('settings_form/form', compact('input_fields', 'hidden_fields', 'api_status') + array(
-			'title' => 'Vbout Settings',
-			'icon' => 'icon-users',
-
-			'submit' => 'Save Changes',
-			'cancel' => 'Reset'
-		));
-	}
-
+	///////////////////////////////////////////////////////////////////////////////////////
 	public static function template($name, $data = array()) 
 	{
 		if (!$name || !file_exists(($template__ = VBOUT_DIR . "/templates/{$name}.html.php"))) {
@@ -546,21 +1174,26 @@ class VboutWP {
 		include $template__;
 		return ob_get_clean();
 	}
+	///////////////////////////////////////////////////////////////////////////////////////
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	//+	CLEANING OPTIONS FROM DATABASE AFTER DESACTIVATION - PLEASE DO NOT REMOVE		///
+	///////////////////////////////////////////////////////////////////////////////////////
+	public static function on_deactivation()
+	{
+		if ( ! current_user_can( 'activate_plugins' ) )
+            return;
+        $plugin = isset( $_REQUEST['plugin'] ) ? $_REQUEST['plugin'] : '';
+        check_admin_referer( "deactivate-plugin_{$plugin}" );
+		
+		
+		foreach (self::$options as $optionKey => $optionVars):
+			foreach($optionVars as $optionVar):
+				$key = "vbout_{$optionVar}";
 
-	public static function getPlugins() {
-		if (!($defaults = get_plugins())):
-			return false;
-		endif;
-
-		foreach ($defaults as $key => $value):
-			if (strpos($key, DIRECTORY_SEPARATOR) !== false):
-				list($plugin, $Script) = explode(DIRECTORY_SEPARATOR, $key, 2);
-				$plugins[$plugin] = $value + compact("Script");
-			else:
-				$plugins[$key] = $value;
-			endif;
+				delete_option($key);
+			endforeach;
 		endforeach;
-
-		return $plugins;
 	}
+	///////////////////////////////////////////////////////////////////////////////////////
 }
