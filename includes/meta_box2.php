@@ -31,7 +31,7 @@
 					<tr scope="row">
 						<th>Facebook:</th>
 						<td>
-							<select name="channels[facebook][]" class="chosen-select" multiple="multiple">
+							<select name="channels[facebook][]" class="chosen-select channels" multiple="multiple">
 							<?php	foreach($channels['Facebook'] as $page): ?>
 								<?php	if (!isset($channels['default']['Facebook']) || (isset($channels['default']['Facebook']) && in_array($page['value'], $channels['default']['Facebook']))): ?>
 								<option value="<?php echo $page['value']; ?>"><?php echo $page['label']; ?></option>
@@ -46,7 +46,7 @@
 					<tr scope="row">
 						<th>Twitter:</th>
 						<td>
-							<select name="channels[twitter][]" class="chosen-select" multiple="multiple">
+							<select name="channels[twitter][]" class="chosen-select channels" multiple="multiple">
 							<?php	foreach($channels['Twitter'] as $profile): ?>
 								<?php	if (!isset($channels['default']['Twitter']) || (isset($channels['default']['Twitter']) && in_array($profile['value'], $channels['default']['Twitter']))): ?>
 								<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
@@ -61,7 +61,7 @@
 					<tr scope="row">
 						<th>Linkedin:</th>
 						<td>
-							<select name="channels[linkedin][]" class="chosen-select" style="width:350px;" multiple="multiple">
+							<select name="channels[linkedin][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
 							<?php	foreach($channels['Linkedin'] as $profile): ?>
 								<?php	if (!isset($channels['default']['Linkedin']) || (isset($channels['default']['Linkedin']) && in_array($profile['value'], $channels['default']['Linkedin']))): ?>
 								<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
