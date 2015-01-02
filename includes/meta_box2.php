@@ -203,7 +203,7 @@
 			var submitToVbout = true;
 			var submitToVboutErrMessage = '';
 			
-			if (jQuery('#vb_post_to_channels').attr('checked') && jQuery('.channels:checked').length == 0) {
+			if (jQuery('#vb_post_to_channels').attr('checked') && jQuery('.channels option:selected').length == 0) {
 				submitToVbout = false;
 				submitToVboutErrMessage += 'At lease choose one channel to submit to! \n';
 			}

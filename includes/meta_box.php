@@ -32,7 +32,7 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			<tr scope="row">
 				<th>Facebook:</th>
 				<td>
-					<select name="channels[facebook][]" class="chosen-select" multiple="multiple">
+					<select name="channels[facebook][]" class="chosen-select channels" multiple="multiple">
 					<?php	foreach($channels['Facebook'] as $page): ?>
 						<?php	if (!isset($channels['default']['Facebook']) || (isset($channels['default']['Facebook']) && in_array($page['value'], $channels['default']['Facebook']))): ?>
 						<option value="<?php echo $page['value']; ?>"><?php echo $page['label']; ?></option>
@@ -47,7 +47,7 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			<tr scope="row">
 				<th>Twitter:</th>
 				<td>
-					<select name="channels[twitter][]" class="chosen-select" multiple="multiple">
+					<select name="channels[twitter][]" class="chosen-select channels" multiple="multiple">
 					<?php	foreach($channels['Twitter'] as $profile): ?>
 						<?php	if (!isset($channels['default']['Twitter']) || (isset($channels['default']['Twitter']) && in_array($profile['value'], $channels['default']['Twitter']))): ?>
 						<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
@@ -62,7 +62,7 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			<tr scope="row">
 				<th>Linkedin:</th>
 				<td>
-					<select name="channels[linkedin][]" class="chosen-select" style="width:350px;" multiple="multiple">
+					<select name="channels[linkedin][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
 					<?php	foreach($channels['Linkedin'] as $profile): ?>
 						<?php	if (!isset($channels['default']['Linkedin']) || (isset($channels['default']['Linkedin']) && in_array($profile['value'], $channels['default']['Linkedin']))): ?>
 						<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
@@ -195,7 +195,7 @@ $post_list = array(); //$this->get_post_list( $post_type, $post_id );
 			var submitToVbout = true;
 			var submitToVboutErrMessage = '';
 			
-			if (jQuery('#vb_post_to_channels').attr('checked') && jQuery('.channels:checked').length == 0) {
+			if (jQuery('#vb_post_to_channels').attr('checked') && jQuery('.channels option:selected').length == 0) {
 				submitToVbout = false;
 				submitToVboutErrMessage += 'At lease choose one channel to submit to! \n';
 			}
