@@ -6,7 +6,9 @@
 <div class="wrap">
 	<h2>Send to Vbout: <?php echo $post->post_title; ?></h2>
 
-	<p><?php echo $post->post_content; ?></p>
+	<div style="background-color: #fff; border: 1px solid #000; height: 200px; overflow: auto; margin-bottom: 25px; padding: 10px;">
+		<?php echo $post->post_content; ?>
+	</div>
 	
 	<form method="post" action="options.php">
 		<input type="hidden" name="post_id" value="<?php echo $postId; ?>" />
