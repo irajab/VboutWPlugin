@@ -38,7 +38,7 @@ if (current_user_can("administrator")) {
 	} elseif (basename($_SERVER['SCRIPT_FILENAME']) == "options.php" && $_POST['action'] == "update" && $_POST['option_page'] == "vbout-settings") {
 		VboutWP::updateExtraOptions();
 	} elseif (basename($_SERVER['SCRIPT_FILENAME']) == "options.php" && $_POST['action'] == "update" && $_POST['option_page'] == "vbout-schedule") {
-		//VboutWP::sendToVbout();
+		VboutWP::sendToVbout();
 	}
 
 	VboutWP::adminInit();	

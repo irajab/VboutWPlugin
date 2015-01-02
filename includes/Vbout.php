@@ -366,11 +366,17 @@ class VboutWP {
 			
 			$post = get_post($_POST['post_id']);
 			
-			$app_key = array(
-				'app_key' => esc_attr(get_option('vbout_appkey')),
-				'client_secret' => esc_attr(get_option('vbout_clientsecret')),
-				'oauth_token' => esc_attr(get_option('vbout_authtoken'))
-			);
+			if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
+				$app_key = array(
+					'key' => get_option('vbout_userkey')
+				);
+			} elseif ($_POST['vbout_method'] == self::VBOUT_METHOD_APPKEY) {
+				$app_key = array(
+					'app_key' => get_option('vbout_appkey'),
+					'client_secret' => get_option('vbout_clientsecret'),
+					'oauth_token' => get_option('vbout_authtoken')
+				);
+			}
 
 			//	CHECK TIME 12-hours | 24-hours
 			if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
@@ -656,7 +662,7 @@ class VboutWP {
 		}
 		
 		/// Adds the action to the hook
-		//add_action('admin_notices', array(__CLASS__, 'vbout_custom_notices'));
+		add_action('admin_notices', array(__CLASS__, 'vbout_custom_notices'));
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////	
