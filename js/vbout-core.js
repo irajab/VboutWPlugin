@@ -64,5 +64,11 @@
 				$('#vbout_tracking_code').val(Base64.decode($('#trackingcode-'+$(this).val()).html()).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"'));
 			});
 		}
+		
+		if ($('[name=post_title]').length) {
+			$('[name=post_title]').change(function() { 
+				$('#vb_post_schedule_emailsubject').val($(this).val());
+			});
+		}
 	});
 })(jQuery)

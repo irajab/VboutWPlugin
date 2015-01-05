@@ -376,6 +376,10 @@ public static function your_plugin_settings_link($links) {
 			
 			$post = get_post($_POST['post_id']);
 			
+			$business = unserialize(get_option('vbout_api_business'));
+			
+			date_default_timezone_set($business['timezone']);
+			
 			if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
 				$app_key = array(
 					'key' => get_option('vbout_userkey')
@@ -389,11 +393,11 @@ public static function your_plugin_settings_link($links) {
 			}
 
 			//	CHECK TIME 12-hours | 24-hours
-			if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
-				$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time'];
-			} else {
-				$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
-			}
+			//if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
+			$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time']['Hours'].':'.$_REQUEST['vb_post_schedule_time']['Minutes'].' '.$_REQUEST['vb_post_schedule_time']['TimeAmPm'];
+			//} else {
+			//	$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
+			//}
 
 			//	CHECK IF POST TO CHANNELS
 			if (isset($_REQUEST['vb_post_to_channels'])) {
@@ -401,23 +405,23 @@ public static function your_plugin_settings_link($links) {
 				
 				foreach($_REQUEST['channels'] as $channelName => $channelId) {
 					$params = array(
-						'message'=>$post->post_content,
+						'message'=>$_REQUEST['content'],
 						'channel'=>$channelName,
 						'channelid'=>implode(',', $channelId),
 						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-						'scheduleddate'=>date('Y-m-d H:i', strtotime($scheduledDateTime))
+						'scheduleddate'=>strtotime($scheduledDateTime)
 					);
 					
-					//print_r($params);
-					//print_r($sm->addNewPost($params)); exit;
+					//print_r($params); exit;
+					//print_r($sm->addNewPost($params));
 					$results['social'][$channelName] = $sm->addNewPost($params);
 					
 					if (is_array($results['social'][$channelName]) && isset($results['social'][$channelName]['errorCode'])) {
 						$hasError = true;
-						$errorMessage .= $results['campaign']['errorCode'].' - '.$results['campaign']['errorMessage'];
+						$errorMessage .= $channelName.' : '.$results['social'][$channelName]['errorCode'].' - '.$results['social'][$channelName]['errorMessage'];
 						
-						if (isset($results['campaign']['fields']))
-							$errorMessage .= '<ul><li>'.implode('</li><li>', $results['campaign']['fields']).'</li></ul>';
+						if (isset($results['social'][$channelName]['fields']))
+							$errorMessage .= '<ul><li>'.implode('</li><li>', $results['social'][$channelName]['fields']).'</li></ul>';
 					}
 				}
 			}
@@ -434,9 +438,9 @@ public static function your_plugin_settings_link($links) {
 					'reply_to'=>$_REQUEST['vb_post_schedule_replyto'],
 					'isdraft'=>'false',
 					'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-					'scheduled_datetime'=>date('Y-m-d H:i', strtotime($scheduledDateTime)),
+					'scheduled_datetime'=>date('Y-m-d h:i A', strtotime($scheduledDateTime)),
 					'recipients'=>($_REQUEST['campaign'] != NULL)?implode(',', $_REQUEST['campaign']):'',
-					'body'=>$post->post_content
+					'body'=>$_REQUEST['content']
 				);
 				
 				//print_r($params);
@@ -455,9 +459,22 @@ public static function your_plugin_settings_link($links) {
 			//IF THERE IS AN ERROR ADD CUSTOM MESSAGE OF THE ERROR
 			if ($hasError) {
 				//print_r($errorMessage);
-				$_SESSION['vb_custom_error'] = $errorMessage;
+				//$_SESSION['vb_custom_error'] = $errorMessage;
+				
+				$message = array(
+					'type'=>'error',
+					'message'=>$errorMessage
+				);
+				
+				update_option("vbout_flash_message", serialize($message));
 			} else {
-				$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+				//$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+				$message = array(
+					'type'=>'updated',
+					'message'=>__( 'Your marketing task has been scheduled. Click <a href="https://www.vbout.com/dashboard">here</a> to manage your submissions on Vbout.com', 'vblng' )
+				);
+				
+				update_option("vbout_flash_message", serialize($message));
 			}
 			
 			//exit;
@@ -600,7 +617,7 @@ public static function your_plugin_settings_link($links) {
 							$defaultDomains[] = array('value'=>$domain['id'], 'label'=>$domain['domain'], 'code'=>$domain['trackercode']);
 					}
 					
-					update_option("vbout_tracking_domain", serialize($defaultDomains));
+					update_option("vbout_tracking_domains", serialize($defaultDomains));
 				}
 				
 				update_option("vbout_method", $_POST['vbout_method']);
@@ -722,7 +739,7 @@ public static function your_plugin_settings_link($links) {
 			$input_fields = implode("\n", array(
 				self::template('form_objects/header', array(
 					'header' => __( 'Connect your Vbout App to your Wordpress Site', 'vblng' ),
-					'description' => __( 'You need to have an account with Vbout.com to activate this plugin. Click <a href="https://www.vbout.com/">here</a> to signup for a FREE trial.<br /><br />You can connect using your main API key or an application specific key. An application key can be revoked from your Vbout.com settings at anytime but your API key cannot be changed. If you are the only one with access to your Vbout and Wordpress accounts, your API Key is the easier option, otherwise, configure an application from your account and use it below. Click <a href="https://www.vbout.com/">here</a> for more information.', 'vblng' )
+					'description' => __( 'You need to have an account with Vbout.com to activate this plugin. Click <a href="https://www.vbout.com/pricing" target="_blank">here</a> to signup for a FREE trial.<br /><br />You can connect using your main API key or an application specific key. An application key can be revoked from your Vbout.com settings at anytime but your API key cannot be changed. If you are the only one with access to your Vbout and Wordpress accounts, your API Key is the easier option, otherwise, configure an application from your account and use it below. Click <a href="https://www.vbout.com/" target="_blank">here</a> for more information.', 'vblng' )
 				)),
 				
 				self::template('form_objects/slider', array(
@@ -734,7 +751,7 @@ public static function your_plugin_settings_link($links) {
 							'name' => __( 'My User Key', 'vblng' ),
 							'value' => esc_attr(get_option('vbout_userkey')),
 							'description' => implode('<br />', array(
-								implode('&nbsp;&nbsp;', array(__( 'Your Vbout account User Key. Click <a href="https://www.vbout.com/">here</a> to obtain your api key.', 'vblng' )))
+								implode('&nbsp;&nbsp;', array(__( 'Your Vbout account User Key. Click <a href="https://www.vbout.com/settings/apikeys" target="_blank">here</a> to obtain your api key.', 'vblng' )))
 							))
 						))
 					))
@@ -789,7 +806,7 @@ public static function your_plugin_settings_link($links) {
 		} elseif ($plugin_status == self::VBOUT_STATUS_ACTIVE) {
 			$channels 	= unserialize(get_option('vbout_sm_channels'));
 			$lists 		= unserialize(get_option('vbout_em_lists'));
-			$domains 	= unserialize(get_option('vbout_tracking_domain'));
+			$domains 	= unserialize(get_option('vbout_tracking_domains'));
 			
 			$stupidBusiness = unserialize(get_option('vbout_api_business'));
 			
@@ -1058,19 +1075,19 @@ public static function your_plugin_settings_link($links) {
 
 	static function vbout_custom_notices()
 	{
-		if (isset($_SESSION['vb_custom_error'])) {
-			echo '<div id="message" class="error"><p><strong>'.$_SESSION['vb_custom_error'].'</strong></p></div>';
-		} elseif (isset($_SESSION['vb_custom_success'])) {
-			echo '<div id="message" class="updated"><p><strong>'.$_SESSION['vb_custom_success'].'</strong></p></div>';
+		if (get_option("vbout_flash_message") !== FALSE) {
+			$message = unserialize(get_option("vbout_flash_message"));
+			
+			echo '<div id="message" class="'.$message['type'].'"><p><strong>'.$message['message'].'</strong></p></div>';
+			
+			//	REMOVE THE STUPID MESSAGE FROM DB
+			update_option("vbout_flash_message", '');
 		}
-		
-		unset($_SESSION['vb_custom_error']);
-		unset($_SESSION['vb_custom_success']);
 	}
 	
 	static function send_vbout_queries()
 	{
-		if ( current_user_can( 'publish_posts' ) ) {			
+		if ( current_user_can( 'publish_posts' ) ) {
 			if ($_POST != NULL) {
 				$results = array();
 				$hasError = false;
@@ -1079,43 +1096,53 @@ public static function your_plugin_settings_link($links) {
 				//echo '<pre>';
 				//print_r($_REQUEST);
 				//return;
-				
-				$app_key = array(
-					'app_key' => esc_attr(get_option('vbout_appkey')),
-					'client_secret' => esc_attr(get_option('vbout_clientsecret')),
-					'oauth_token' => esc_attr(get_option('vbout_authtoken'))
-				);
-
-				//	CHECK TIME 12-hours | 24-hours
-				if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
-					$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time'];
-				} else {
-					$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
+					
+				if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
+					$app_key = array(
+						'key' => get_option('vbout_userkey')
+					);
+				} elseif ($_POST['vbout_method'] == self::VBOUT_METHOD_APPKEY) {
+					$app_key = array(
+						'app_key' => get_option('vbout_appkey'),
+						'client_secret' => get_option('vbout_clientsecret'),
+						'oauth_token' => get_option('vbout_authtoken')
+					);
 				}
+
+				$business = unserialize(get_option('vbout_api_business'));
+				
+				date_default_timezone_set($business['timezone']);
+								
+				//	CHECK TIME 12-hours | 24-hours
+				//if (preg_match("/(1[012]|0[0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time']) || preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $_REQUEST['vb_post_schedule_time'])) {
+				$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' '.$_REQUEST['vb_post_schedule_time']['Hours'].':'.$_REQUEST['vb_post_schedule_time']['Minutes'].' '.$_REQUEST['vb_post_schedule_time']['TimeAmPm'];
+				//} else {
+				//	$scheduledDateTime = $_REQUEST['vb_post_schedule_date'].' 00:00';
+				//}
 
 				//	CHECK IF POST TO CHANNELS
 				if (isset($_REQUEST['vb_post_to_channels'])) {
 					$sm = new SocialMediaWS($app_key);
-					
+
 					foreach($_REQUEST['channels'] as $channelName => $channelId) {
 						$params = array(
 							'message'=>$_REQUEST['content'],
 							'channel'=>$channelName,
 							'channelid'=>implode(',', $channelId),
 							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-							'scheduleddate'=>date('Y-m-d H:i', strtotime($scheduledDateTime))
+							'scheduleddate'=>strtotime($scheduledDateTime)
 						);
 						
-						//print_r($params);
+						//print_r($params);  exit;
 						//print_r($sm->addNewPost($params)); exit;
 						$results['social'][$channelName] = $sm->addNewPost($params);
 						
 						if (is_array($results['social'][$channelName]) && isset($results['social'][$channelName]['errorCode'])) {
 							$hasError = true;
-							$errorMessage .= $results['social']['errorCode'].' - '.$results['social']['errorMessage'];
+							$errorMessage .= $results['social'][$channelName]['errorCode'].' - '.$results['social'][$channelName]['errorMessage'];
 							
-							if (isset($results['social']['fields']))
-								$errorMessage .= '<ul><li>'.implode('</li><li>', $results['social']['fields']).'</li></ul>';
+							if (isset($results['social'][$channelName]['fields']))
+								$errorMessage .= '<ul><li>'.implode('</li><li>', $results['social'][$channelName]['fields']).'</li></ul>';
 						}
 					}
 				}
@@ -1153,9 +1180,22 @@ public static function your_plugin_settings_link($links) {
 				//IF THERE IS AN ERROR ADD CUSTOM MESSAGE OF THE ERROR
 				if ($hasError) {
 					//print_r($errorMessage);
-					$_SESSION['vb_custom_error'] = $errorMessage;
+					//$_SESSION['vb_custom_error'] = $errorMessage;
+					
+					$message = array(
+						'type'=>'error',
+						'message'=>$errorMessage
+					);
+					
+					update_option("vbout_flash_message", serialize($message));
 				} else {
-					$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+					//$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
+					$message = array(
+						'type'=>'updated',
+						'message'=>__( 'Your marketing task has been scheduled. Click <a href="https://www.vbout.com/dashboard" target="_blank">here</a> to manage your submissions on Vbout.com', 'vblng' )
+					);
+					
+					update_option("vbout_flash_message", serialize($message));
 				}
 				
 				//header('location: '.get_admin_url().'post.php?post='.$_POST['post_id']);

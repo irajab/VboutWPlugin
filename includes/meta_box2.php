@@ -5,22 +5,23 @@
 ?>
 <div class="wrap">
 	<h2>Send to Vbout: <?php echo $post->post_title; ?></h2>
-
-	<div style="background-color: #fff; border: 1px solid #000; height: 200px; overflow: auto; margin-bottom: 25px; padding: 10px;">
-		<?php echo $post->post_content; ?>
-	</div>
 	
-	<form method="post" action="options.php">
+	<form method="post" action="options.php" style="padding-top: 15px;">
 		<input type="hidden" name="post_id" value="<?php echo $postId; ?>" />
 		<input type="hidden" name="option_page" value="vbout-schedule" />
 		<input type="hidden" name="action" value="update" />
 		<?php echo wp_nonce_field('vbout-schedule-options', '_wpnonce', true, false); ?>
-			
+
+		
+		<?php wp_editor( $post->post_content, 'content', $settings = array() ); ?>
+	
+		<br />
+		
 		<?php if ($socialMediaActivated && $channels != NULL): ?>
 		<div id="vbout_post_to_channels_box" class="postbox" style="padding: 0 10px;">
 			<h3>
 				<span>
-					<label><input type="checkbox" name="vb_post_to_channels" id="vb_post_to_channels" /><?php _e( 'Post to social channels?', 'vblng' ); ?></label>
+					<label><input type="checkbox" name="vb_post_to_channels" id="vb_post_to_channels" /><?php _e( 'Post to social media?', 'vblng' ); ?></label>
 				</span>
 			</h3>
 
@@ -74,7 +75,7 @@
 
 					<tr scope="row">
 						<th scope="row">
-							<label for="vb_post_schedule_shortenurls"><?php _e( 'Use shorten URLs', 'vblng' ); ?></label>
+							<label for="vb_post_schedule_shortenurls"><?php _e( 'Use tracking URLs?', 'vblng' ); ?></label>
 						</th>
 						<td>
 							<label for="vb_post_schedule_shortenurls">
@@ -91,14 +92,14 @@
 		<div id="vbout_post_to_campaign_box" class="postbox" style="padding: 0 10px;">
 			<h3>
 				<span>
-					<label><input type="checkbox" name="vb_post_to_campaign" id="vb_post_to_campaign" /><?php _e( 'Post as campaign?', 'vblng' ); ?></label>
+					<label><input type="checkbox" name="vb_post_to_campaign" id="vb_post_to_campaign" /><?php _e( 'Send as an email campaign?', 'vblng' ); ?></label>
 				</span>
 			</h3>
 
 			<div class="inside" style="display: none;">
 				<table class="form-table">
 					<tr scope="row">
-						<th>Please choose which lists you want to post to:</th>
+						<th><?php _e( 'Choose list to email the campaign to:', 'vblng' ); ?></th>
 						<td>
 							<?php if (isset($lists['lists']) && $lists['lists'] != NULL): ?>
 							<select id="campaigns" data-placeholder="Choose a List..." class="chosen-select" style="width:350px;" tabindex="2" name="campaign[]" multiple="multiple">
@@ -156,7 +157,7 @@
 			<table class="form-table">
 				<tr scope="row">
 					<th scope="row">
-						<label for="vb_post_schedule_isscheduled"><?php _e( 'Is Scheduled?', 'vblng' ); ?></label>
+						<label for="vb_post_schedule_isscheduled"><?php _e( 'Do you wish to schedule it for the future?', 'vblng' ); ?></label>
 					</th>
 					<td>
 						<label for="vb_post_schedule_isscheduled">
@@ -179,7 +180,38 @@
 						<label for="vb_post_schedule_date"><?php _e( 'Schedule Time', 'vblng' ); ?></label>
 					</th>
 					<td>
-						<input type="text" name="vb_post_schedule_time" id="vb_post_schedule_time" placeholder="HH:MM" value="" class="" />
+						<select name="vb_post_schedule_time[Hours]" id="vb_post_schedule_time_hours">
+							<option selected="selected" value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+							<option value="6">6</option>
+							<option value="7">7</option>
+							<option value="8">8</option>
+							<option value="9">9</option>
+							<option value="10">10</option>
+							<option value="11">11</option>
+							<option value="12">12</option>
+						</select>
+						&nbsp;&nbsp;
+						<select name="vb_post_schedule_time[Minutes]" id="vb_post_schedule_time_minutes">
+							<option selected="selected" value="00">00</option>
+							<option value="05">05</option>
+							<option value="10">10</option>
+							<option value="15">15</option>
+							<option value="20">20</option>
+							<option value="25">25</option>
+							<option value="30">30</option>
+							<option value="35">35</option>
+							<option value="40">40</option>
+							<option value="45">45</option>
+							<option value="50">50</option>
+							<option value="55">55</option>
+						</select>
+						&nbsp;
+						<input checked="checked" type='radio' class='' id='TimeAmPm_Am' name='vb_post_schedule_time[TimeAmPm]' value="am"><label for='TimeAmPm_Am'>AM</label>
+						<input type='radio' class='' id='TimeAmPm_Pm' name='vb_post_schedule_time[TimeAmPm]' value="pm"><label for='TimeAmPm_Pm'>PM</label>
 					</td>
 				</tr>
 
