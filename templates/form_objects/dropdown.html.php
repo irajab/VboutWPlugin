@@ -22,6 +22,14 @@
 			<?php endif; ?>
 		</select>
 		
+		<?php if (isset($trackingcode) && $trackingcode): ?>
+		<?php	foreach($options as $index => $option): ?>
+		<div id="trackingcode-<?php echo $option['value'];  ?>" style="display: none;">
+		<?php echo $option['code']; ?>
+		</div>
+		<?php	endforeach; ?>
+		<?php endif; ?>
+		
 		<?php if (isset($description) && !empty($description)): ?>
 			<p class="description"><?php echo $description; ?></p>
 		<?php endif; ?>

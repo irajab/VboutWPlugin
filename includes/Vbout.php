@@ -324,9 +324,19 @@ class VboutWP {
 		///	ADDING VBOUT MENU TO WORDPRESS LEFT SIDEBAR
 		add_action('admin_menu', array(__CLASS__, 'admin_menu'));
 		
+		add_filter("plugin_action_links_vboutwp/vboutwp.php", array(__CLASS__, 'your_plugin_settings_link'));
 		//add_action('wp_dashboard_setup', array(__CLASS__, 'wp_dashboard_setup'));
 		//add_action('widgets_init', array(__CLASS__, 'widgets_init'));
 	}
+public static function your_plugin_settings_link($links) { 
+	if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
+		$settings_link = '<a href="admin.php?page=vbout-connect">Settings</a>'; 
+	} else {
+		$settings_link = '<a href="admin.php?page=vbout-settings">Settings</a>'; 
+	}
+  array_unshift($links, $settings_link); 
+  return $links; 
+}
 
 	public static function adminInit() 
 	{
@@ -537,7 +547,7 @@ class VboutWP {
 					
 					$message = array(
 						'type'=>'updated',
-						'message'=>__( 'Connect to Vbout succeeded.', 'vblng' )
+						'message'=>__( 'You have successfully connected your Vbout account to your Wordpress site.', 'vblng' )
 					);
 					
 					update_option("vbout_flash_message", serialize($message));
@@ -580,19 +590,17 @@ class VboutWP {
 					
 					update_option("vbout_em_lists", serialize($defaultLists));
 					
-					/*
 					$trk = new WebsiteTrackWS($app_key);
 					
 					$domains = $trk->getDomains();
 					$defaultDomains = array();
-					
+
 					if (isset($domains['count']) && $domains['count'] > 0) {
 						foreach($domains['items'] as $domain)
-							$defaultDomains[] = array('id'=>$domain['id'], 'url'=>$domain['url'], 'code'=>$domain['code']);
+							$defaultDomains[] = array('value'=>$domain['id'], 'label'=>$domain['domain'], 'code'=>$domain['trackercode']);
 					}
 					
 					update_option("vbout_tracking_domain", serialize($defaultDomains));
-					*/
 				}
 				
 				update_option("vbout_method", $_POST['vbout_method']);
@@ -622,6 +630,7 @@ class VboutWP {
 		if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
 			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
 		} elseif ($plugin_status == self::VBOUT_STATUS_ACTIVE) {
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
 			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
 		}
 		
@@ -709,11 +718,11 @@ class VboutWP {
 		
 		//sprintf('<h1 style="color: red; margin: 0;">%1$s*</h1>', __('Protection Inactive', 'vblng'))
 		
-		if ($plugin_status == self::VBOUT_STATUS_DISACTIVE) {
+		if ($plugin_status == self::VBOUT_STATUS_DISACTIVE || (isset($_GET['page']) && $_GET['page'] == 'vbout-connect')) {
 			$input_fields = implode("\n", array(
 				self::template('form_objects/header', array(
-					'header' => __( 'Connect to Vbout API', 'vblng' ),
-					'description' => __( 'You are currently not connected to Vbout API, please use one of the following methods to connect before you are able to continue.', 'vblng' )
+					'header' => __( 'Connect your Vbout App to your Wordpress Site', 'vblng' ),
+					'description' => __( 'You need to have an account with Vbout.com to activate this plugin. Click <a href="https://www.vbout.com/">here</a> to signup for a FREE trial.<br /><br />You can connect using your main API key or an application specific key. An application key can be revoked from your Vbout.com settings at anytime but your API key cannot be changed. If you are the only one with access to your Vbout and Wordpress accounts, your API Key is the easier option, otherwise, configure an application from your account and use it below. Click <a href="https://www.vbout.com/">here</a> for more information.', 'vblng' )
 				)),
 				
 				self::template('form_objects/slider', array(
@@ -725,7 +734,7 @@ class VboutWP {
 							'name' => __( 'My User Key', 'vblng' ),
 							'value' => esc_attr(get_option('vbout_userkey')),
 							'description' => implode('<br />', array(
-								implode('&nbsp;&nbsp;', array(__( 'Your Vbout account User Key.', 'vblng' )))
+								implode('&nbsp;&nbsp;', array(__( 'Your Vbout account User Key. Click <a href="https://www.vbout.com/">here</a> to obtain your api key.', 'vblng' )))
 							))
 						))
 					))
@@ -782,11 +791,14 @@ class VboutWP {
 			$lists 		= unserialize(get_option('vbout_em_lists'));
 			$domains 	= unserialize(get_option('vbout_tracking_domain'));
 			
+			$stupidBusiness = unserialize(get_option('vbout_api_business'));
+			
 			$settings_tabs_header = array(
 				'general' => __( 'General', 'vblng' ), 
 				'social_media' => __( 'Social Media', 'vblng' ),
 				'email_marketing' => __( 'Email Marketing', 'vblng' ),
-				'tracking' => __( 'Site Tracking', 'vblng' )
+				'tracking' => __( 'Site Tracking', 'vblng' ),
+				'support' => __( 'Support', 'vblng' ),
 			);
 			
 			$current_tab = isset($_REQUEST['tab'])?$_REQUEST['tab']:'general';
@@ -795,7 +807,7 @@ class VboutWP {
 			$settings_tabs['general'] = implode("\n", array(
 				self::template('form_objects/header', array(
 					'header' => $settings_tabs_header['general'],
-					'description' => __( 'Please choose where you want the plugin to attached inside the dashboard:', 'vblng' )
+					'description' => __( 'You are connected to ('.$stupidBusiness['businessName'].') click <a href="'.get_admin_url().'admin.php?page=vbout-connect">here</a> to change your key.<Br /><Br />Please choose what type of content will use the plugin:', 'vblng' )
 				)),
 				
 				self::template('form_objects/dropdown', array(
@@ -814,7 +826,7 @@ class VboutWP {
 				
 				self::template('form_objects/dropdown', array(
 					'key' => 'vbout_plugin_attachment',
-					'name' => __( 'Attach this Plugin on', 'vblng' ),
+					'name' => __( 'Show Plugin Option on', 'vblng' ),
 					'options' => array(
 						array('label' => __( 'Both (Quick Menu and Inside Forms)', 'vblng' ), 'value' => self::VBOUT_ATTACH_EVERYWHERE),
 						array('label' => __( 'Quick Menu Only', 'vblng' ), 'value' => self::VBOUT_ATTACH_MENUONLY),
@@ -832,7 +844,7 @@ class VboutWP {
 				///	SOCIAL MEDIA SETTINGS
 				self::template('form_objects/header', array(
 					'header' => $settings_tabs_header['social_media'],
-					'description' => __( 'Please choose default setting for social media:', 'vblng' )
+					'description' => __( 'Please choose the default settings for marketing on social media through Vbout.com:', 'vblng' )
 				)),
 				
 				self::template('form_objects/radio', array(
@@ -842,9 +854,9 @@ class VboutWP {
 					),
 
 					'key' => 'vbout_sm_activated',
-					'name' => __( 'Activate Social Media', 'vblng' ),
+					'name' => __( 'Push Content to Social Media', 'vblng' ),
 					'value' => get_option('vbout_sm_activated'),
-					'description' => __( 'Whether or not to scheduled posts on social media.', 'vblng' )
+					'description' => __( 'Whether or not you wish to offer posting your content to your social media channels.', 'vblng' )
 				)),
 				
 				self::template('form_objects/dropdown', array(
@@ -854,7 +866,7 @@ class VboutWP {
 					'key' => 'vbout_sm_channels_facebook',
 					'name' => __( 'Facebook Pages', 'vblng' ),
 					'value' => isset($channels['default']['Facebook'])?$channels['default']['Facebook']:array(),
-					'description' => __( 'Choose which Facebook page(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All pages will be shown if none chosen.</span>', 'vblng' )
+					'description' => __( 'Choose which Facebook page(s) you want to be shown in the social media menu. <br /><span style="color: red;">Note: All pages will be shown if none chosen.</span>', 'vblng' )
 				)),
 				
 				
@@ -865,7 +877,7 @@ class VboutWP {
 					'key' => 'vbout_sm_channels_twitter',
 					'name' => __( 'Twitter Profiles', 'vblng' ),
 					'value' => isset($channels['default']['Twitter'])?$channels['default']['Twitter']:array(),
-					'description' => __( 'Choose which Twitter profile(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
+					'description' => __( 'Choose which Twitter profile(s) you want to be shown in the social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
 				)),
 				
 				self::template('form_objects/dropdown', array(
@@ -875,7 +887,7 @@ class VboutWP {
 					'key' => 'vbout_sm_channels_linkedin',
 					'name' => __( 'Linkedin Profiles', 'vblng' ),
 					'value' => isset($channels['default']['Linkedin'])?$channels['default']['Linkedin']:array(),
-					'description' => __( 'Choose which Linkedin profile(s) you want to be shown in the scheduled social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
+					'description' => __( 'Choose which Linkedin profile(s) you want to be shown in the social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
 				)),
 			));
 				/////////////////////////////////////////////////////////////////////////////////////////
@@ -885,7 +897,7 @@ class VboutWP {
 				///	EMAIL MARKETING SETTINGS
 				self::template('form_objects/header', array(
 					'header' => $settings_tabs_header['email_marketing'],
-					'description' => __( 'Please choose default setting for email marketing:', 'vblng' )
+					'description' => __( 'Please choose default settings for turning your content into email marketing posts on Vbout.com:', 'vblng' )
 				)),
 				
 				self::template('form_objects/radio', array(
@@ -895,9 +907,9 @@ class VboutWP {
 					),
 
 					'key' => 'vbout_em_activated',
-					'name' => __( 'Activate Email Marketing', 'vblng' ),
+					'name' => __( 'Push Content to Email Marketing', 'vblng' ),
 					'value' => get_option('vbout_em_activated'),
-					'description' => __( 'Whether or not to scheduled campaigns on email marketing.', 'vblng' )
+					'description' => __( 'Whether or not you wish to offer posting your content to your email marketing engine.', 'vblng' )
 				)),
 				
 				self::template('form_objects/dropdown', array(
@@ -907,7 +919,7 @@ class VboutWP {
 					'key' => 'vbout_em_lists',
 					'name' => __( 'Subscriber\'s Lists', 'vblng' ),
 					'value' => $lists['default'],
-					'description' => __( 'Choose which list(s) you want to be shown in the scheduled campaign menu. <br /><span style="color: red;">Note: All lists will be shown if none chosen.</span>', 'vblng' )
+					'description' => __( 'Choose which list(s) you want to be shown in the "send as email campaign" menu. <br /><span style="color: red;">Note: All lists will be shown if none chosen.</span>', 'vblng' )
 				)),
 				
 				self::template('form_objects/text', array(
@@ -949,10 +961,10 @@ class VboutWP {
 				self::template('form_objects/dropdown', array(
 					'key' => 'vbout_sync_emaillist',
 					'name' => __( 'Users Synchronization List', 'vblng' ),
-					'options' => $lists['lists'],
+					'options' => array_merge(array(array('value'=>'', 'label'=>'- NONE -')), $lists['lists']),
 					'value' => esc_attr(get_option('vbout_sync_emaillist')),
 					'description' => implode('<br />', array(
-						implode('&nbsp;&nbsp;', array('Choose which list you want wordpress users to be synchronized to.'))
+						implode('&nbsp;&nbsp;', array('Choose which list on Vbout.com you want to synch your wordpress users with. The email of each user on your Wordpress will be sent to your chosen list on Vbout to be used for marketing and automation. (This is a one-way synchronization).'))
 					))
 				)),
 				/////////////////////////////////////////////////////////////////////////////////////////
@@ -963,7 +975,7 @@ class VboutWP {
 				///	SITE TRACKING SETTINGS
 				self::template('form_objects/header', array(
 					'header' => $settings_tabs_header['tracking'],
-					'description' => __( 'Please choose default setting for site tracking:', 'vblng' )
+					'description' => __( 'Please choose default settings for site tracking by Vbout.com (used for conversion tracking, behavioral targeting and more).', 'vblng' )
 				)),
 				
 				self::template('form_objects/radio', array(
@@ -975,13 +987,14 @@ class VboutWP {
 					'key' => 'vbout_tracking_activated',
 					'name' => __( 'Activate Site Tracking', 'vblng' ),
 					'value' => get_option('vbout_tracking_activated'),
-					'description' => __( 'Whether or not to put Vbout site tracking code inside footer.', 'vblng' )
+					'description' => __( 'Whether or not to push Vbout site tracking code inside your Wordpress footer.', 'vblng' )
 				)),
 				
 				self::template('form_objects/dropdown', array(
+					'trackingcode'=>true,
 					'key' => 'vbout_tracking_domain',
 					'name' => __( 'Site Domains', 'vblng' ),
-					'options' => $domains,
+					'options' => array_merge(array(array('value'=>'', 'label'=>'- NONE -')), $domains),
 					'value' => esc_attr(get_option('vbout_tracking_domain')),
 					'description' => implode('<br />', array(
 						implode('&nbsp;&nbsp;', array('Choose which domain you want tracking code to be included.'))
@@ -997,6 +1010,13 @@ class VboutWP {
 					))
 				)),
 				/////////////////////////////////////////////////////////////////////////////////////////
+			));
+			
+			$settings_tabs['support'] = implode("\n", array(
+				self::template('form_objects/header', array(
+					'header' => $settings_tabs_header['support'],
+					'description' => __( 'Vbout.com - Marketing Automation Platform<br /><br />For any questions, suggestions or bug reporting please contact us directly at:  <a href="mailto:Support@Vbout.com">Support@Vbout.com</a>.', 'vblng' )
+				)),
 			));
 			
 			$input_fields = self::template('form_objects/tabs', array(

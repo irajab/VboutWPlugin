@@ -27,6 +27,7 @@ define("VBOUT_DIR", WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . "vboutwp");
 require_once VBOUT_DIR . "/vbout-src/services/ApplicationWS.php";
 require_once VBOUT_DIR . "/vbout-src/services/SocialMediaWS.php";
 require_once VBOUT_DIR . "/vbout-src/services/EmailMarketingWS.php";
+require_once VBOUT_DIR . "/vbout-src/services/WebsiteTrackWS.php";
 require_once VBOUT_DIR . "/includes/Vbout.php";
 
 VboutWP::process();
