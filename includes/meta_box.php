@@ -69,7 +69,7 @@ $post = get_post($postId);
 			<tr scope="row">
 				<th scope="row">
 					<label for="vb_post_schedule_shortenurls"><?php _e( 'Use tracking URLs?', 'vblng' ); ?></label>
-					<img class="alignright vb_tooltip" alt="The link to this post will be masked with a tracking url, <br />ex: https://www.vbout.com/goto/UO  so we can track clicks and social media conversion." src="<?php echo VBOUT_URL; ?>/images/question-mark.png" style="cursor: pointer;" />
+					<img class="alignright vb_tooltip" alt="The link to this post will be masked with a tracking url, <br />ex: https://www.vbout.com/goto/UO  so we can track clicks and social media conversion." src="<?php echo VBOUT_URL; ?>/images/tooltip-icon.png" style="cursor: pointer;" />
 				</th>
 				<td>
 					<label for="vb_post_schedule_shortenurls">
