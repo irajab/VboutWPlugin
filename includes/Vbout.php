@@ -45,6 +45,7 @@ class VboutWP {
 			"sm_activated",
 			//... EMAIL MARKETING
 			"em_activated",
+			"em_emailname",
 			"em_emailsubject",
 			"em_fromemail",
 			"em_fromname",
@@ -108,6 +109,7 @@ class VboutWP {
 		add_filter("default_option_vbout_em_activated", array(__CLASS__, "defaultEmailMarketingActivated"));
 		add_filter("default_option_vbout_em_lists", array(__CLASS__, "defaultEmailMarketingLists"));
 		
+		add_filter("default_option_vbout_em_emailname", array(__CLASS__, "defaultCampaignName"));
 		add_filter("default_option_vbout_em_emailsubject", array(__CLASS__, "defaultCampaignSubject"));
 		add_filter("default_option_vbout_em_fromemail", array(__CLASS__, "defaultCampaignFromEmail"));
 		add_filter("default_option_vbout_em_fromname", array(__CLASS__, "defaultCampaignFromName"));
@@ -246,6 +248,14 @@ class VboutWP {
 		return serialize(array());
 	}
 
+	public static function defaultCampaignName($default = null) 
+	{
+		if ($default) 
+			return $default;
+
+		return "";
+	}
+
 	public static function defaultCampaignSubject($default = null) 
 	{
 		if ($default) 
@@ -349,12 +359,14 @@ public static function your_plugin_settings_link($links) {
 		wp_enqueue_script('jquery-ui-core');
 		wp_enqueue_script('jquery-ui-datepicker');
 		
+		wp_enqueue_script('vb-jsqtip-tooltip', VBOUT_URL.'/js/jquery.qtip.min.js', array( 'jquery' ));
 		wp_enqueue_script('vb-jschosen-dropbox', VBOUT_URL.'/js/chosen.jquery.min.js', array( 'jquery' ));
 		wp_enqueue_script('vb-core-script', VBOUT_URL.'/js/vbout-core.js', array( 'jquery', 'vb-jschosen-dropbox' ));
 		
 		// CSS
 		wp_enqueue_style('jquery-ui-css', '//ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
 		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
+		wp_enqueue_style( 'vb-jsqtip-css', VBOUT_URL.'/js/jquery.qtip.min.css', array(), NULL );
 		
 		//	APPEND TRACKING TO FOOTER IF ENABLED
 		$tracking_enabled = get_option('vbout_tracking_activated');
@@ -405,7 +417,7 @@ public static function your_plugin_settings_link($links) {
 				
 				foreach($_REQUEST['channels'] as $channelName => $channelId) {
 					$params = array(
-						'message'=>$_REQUEST['content'],
+						'message'=>strip_tags($_REQUEST['content']),
 						'channel'=>$channelName,
 						'channelid'=>implode(',', $channelId),
 						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
@@ -431,7 +443,7 @@ public static function your_plugin_settings_link($links) {
 				
 				$params = array(
 					'type'=>'standard',
-					'name'=>$post->post_title,
+					'name'=>$_REQUEST['vb_post_schedule_emailname'],
 					'subject'=>$_REQUEST['vb_post_schedule_emailsubject'],
 					'fromemail'=>$_REQUEST['vb_post_schedule_fromemail'],
 					'from_name'=>$_REQUEST['vb_post_schedule_fromname'],
@@ -471,7 +483,7 @@ public static function your_plugin_settings_link($links) {
 				//$_SESSION['vb_custom_success'] = 'Your message has been sent successfully to vbout.';
 				$message = array(
 					'type'=>'updated',
-					'message'=>__( 'Your marketing task has been scheduled. Click <a href="https://www.vbout.com/dashboard">here</a> to manage your submissions on Vbout.com', 'vblng' )
+					'message'=>__( 'Your marketing task has been scheduled. Click <a href="https://www.vbout.com/dashboard" target="_blank">here</a> to manage your submissions on Vbout.com', 'vblng' )
 				);
 				
 				update_option("vbout_flash_message", serialize($message));
@@ -739,7 +751,7 @@ public static function your_plugin_settings_link($links) {
 			$input_fields = implode("\n", array(
 				self::template('form_objects/header', array(
 					'header' => __( 'Connect your Vbout App to your Wordpress Site', 'vblng' ),
-					'description' => __( 'You need to have an account with Vbout.com to activate this plugin. Click <a href="https://www.vbout.com/pricing" target="_blank">here</a> to signup for a FREE trial.<br /><br />You can connect using your main API key or an application specific key. An application key can be revoked from your Vbout.com settings at anytime but your API key cannot be changed. If you are the only one with access to your Vbout and Wordpress accounts, your API Key is the easier option, otherwise, configure an application from your account and use it below. Click <a href="https://www.vbout.com/" target="_blank">here</a> for more information.', 'vblng' )
+					'description' => __( 'You need to have an account with Vbout.com to activate this plugin. Click <a href="https://www.vbout.com/pricing" target="_blank">here</a> to signup for a FREE trial.<br /><br />You can connect using your main API key or an application specific key. An application key can be revoked from your Vbout.com settings at anytime but your API key cannot be changed. If you are the only one with access to your Vbout and Wordpress accounts, your API Key is the easier option, otherwise, configure an application from your account and use it below. Click <a href="https://developers.vbout.com/quickstart" target="_blank">here</a> for more information.<br /><div style="text-align: center;"><iframe width="853" height="480" src="//www.youtube.com/embed/1m54s5LCr4g?rel=0" frameborder="0" allowfullscreen></iframe></div>', 'vblng' )
 				)),
 				
 				self::template('form_objects/slider', array(
@@ -940,6 +952,15 @@ public static function your_plugin_settings_link($links) {
 				)),
 				
 				self::template('form_objects/text', array(
+					'key' => 'vbout_em_emailname',
+					'name' => __( 'Default Email Name', 'vblng' ),
+					'value' => esc_attr(get_option('vbout_em_emailname')),
+					'description' => implode('<br />', array(
+						implode('&nbsp;&nbsp;', array(__( 'Enter the default email name here if you want it to be same in every campaign.', 'vblng' )))
+					))
+				)),
+				
+				self::template('form_objects/text', array(
 					'key' => 'vbout_em_emailsubject',
 					'name' => __( 'Default Email Subject', 'vblng' ),
 					'value' => esc_attr(get_option('vbout_em_emailsubject')),
@@ -981,7 +1002,7 @@ public static function your_plugin_settings_link($links) {
 					'options' => array_merge(array(array('value'=>'', 'label'=>'- NONE -')), $lists['lists']),
 					'value' => esc_attr(get_option('vbout_sync_emaillist')),
 					'description' => implode('<br />', array(
-						implode('&nbsp;&nbsp;', array('Choose which list on Vbout.com you want to synch your wordpress users with. The email of each user on your Wordpress will be sent to your chosen list on Vbout to be used for marketing and automation. (This is a one-way synchronization).'))
+						implode('&nbsp;&nbsp;', array('Choose which list on Vbout.com you want to synch your wordpress users with. The email of each user on your Wordpress will be sent to your chosen list on Vbout to be used for marketing and automation. (This is a one-way synchronization).<br /><p style="color: red;">To enable the synchronization features please install the following Cron Job on your hosting account: </p><pre>wget -q -O - '.get_site_url().'/wp-cron.php?doing_wp_cron >/dev/null 2>&1</pre><p style="color: red;">The default recommended synchronization frequency is once per day but you can modify this as you see fit.</p>'))
 					))
 				)),
 				/////////////////////////////////////////////////////////////////////////////////////////
@@ -1032,7 +1053,7 @@ public static function your_plugin_settings_link($links) {
 			$settings_tabs['support'] = implode("\n", array(
 				self::template('form_objects/header', array(
 					'header' => $settings_tabs_header['support'],
-					'description' => __( 'Vbout.com - Marketing Automation Platform<br /><br />For any questions, suggestions or bug reporting please contact us directly at:  <a href="mailto:Support@Vbout.com">Support@Vbout.com</a>.', 'vblng' )
+					'description' => __( '<a href="https://www.vbout.com/?utm_source=wordpress&utm_medium=plugin&utm_campaign=wordpress" target="_blank">Vbout.com - All-in One Marketing Automation</a><br /><br />For any questions, suggestions or bug reporting please contact us directly at:  <a href="mailto:Support@Vbout.com">Support@Vbout.com</a>.<br /><br /><div style="text-align: center;"><iframe width="853" height="480" src="//www.youtube.com/embed/1m54s5LCr4g?rel=0" frameborder="0" allowfullscreen></iframe></div>', 'vblng' )
 				)),
 			));
 			
@@ -1126,7 +1147,7 @@ public static function your_plugin_settings_link($links) {
 
 					foreach($_REQUEST['channels'] as $channelName => $channelId) {
 						$params = array(
-							'message'=>$_REQUEST['content'],
+							'message'=>strip_tags($_REQUEST['content']),
 							'channel'=>$channelName,
 							'channelid'=>implode(',', $channelId),
 							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
@@ -1152,7 +1173,7 @@ public static function your_plugin_settings_link($links) {
 					
 					$params = array(
 						'type'=>'standard',
-						'name'=>$_REQUEST['post_title'],
+						'name'=>$_REQUEST['vb_post_schedule_emailname'],
 						'subject'=>$_REQUEST['vb_post_schedule_emailsubject'],
 						'fromemail'=>$_REQUEST['vb_post_schedule_fromemail'],
 						'from_name'=>$_REQUEST['vb_post_schedule_fromname'],

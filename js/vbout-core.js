@@ -4,6 +4,34 @@
 	$(document).ready(function() { 
 		$('.chosen-select').chosen({'width':'50%'});
 		
+		$('.vb_tooltip').qtip({
+			content: {
+				attr: 'alt'
+			},
+			position: {
+				my: 'bottom left',
+				at: 'top center'
+			},
+			style   : {
+				tip: {
+					corner: true
+				},
+				classes : 'qtip-bootstrap'
+			},
+			show    : {
+				when: {
+					event: 'mouseover'
+				}
+			},
+			hide    : {
+				fixed: true,
+				when : {
+					event: 'mouseout'
+				}
+			}
+
+		});
+		
 		$('#Vbout-settings-tabs a').click(function(e) { 
 			e.preventDefault();
 			

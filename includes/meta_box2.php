@@ -76,6 +76,7 @@
 					<tr scope="row">
 						<th scope="row">
 							<label for="vb_post_schedule_shortenurls"><?php _e( 'Use tracking URLs?', 'vblng' ); ?></label>
+							<img class="alignright vb_tooltip" alt="The link to this post will be masked with a tracking url, <br />ex: https://www.vbout.com/goto/UO  so we can track clicks and social media conversion." src="<?php echo VBOUT_URL; ?>/images/tooltip-icon.png" style="cursor: pointer;" />
 						</th>
 						<td>
 							<label for="vb_post_schedule_shortenurls">
@@ -102,7 +103,7 @@
 						<th><?php _e( 'Choose list to email the campaign to:', 'vblng' ); ?></th>
 						<td>
 							<?php if (isset($lists['lists']) && $lists['lists'] != NULL): ?>
-							<select id="campaigns" data-placeholder="Choose a List..." class="chosen-select" style="width:350px;" tabindex="2" name="campaign[]" multiple="multiple">
+							<select id="campaigns" class="chosen-select" style="width:350px;" tabindex="2" name="campaign[]" multiple="multiple">
 							<?php	foreach($lists['lists'] as $list): ?>
 							<?php		if (($lists['default'] == NULL) || ($lists['default'] != NULL && in_array($list['value'], $lists['default']))): ?>
 								<option value="g_<?php echo $list['value']; ?>"><?php echo $list['label']; ?></option>
@@ -113,6 +114,15 @@
 						</td>
 					</tr>
 
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Name', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_emailname" id="vb_post_schedule_emailname" value="<?php echo get_option('vbout_em_emailname'); ?>" class="regular-text" />
+						</td>
+					</tr>
+					
 					<tr scope="row">
 						<th scope="row" style="width: auto;">
 							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Subject', 'vblng' ); ?></label>
