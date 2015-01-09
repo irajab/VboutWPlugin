@@ -362,6 +362,10 @@ $initArray['setup'] = <<<JS
 		triggerLivePreview(ed);
 	});
 
+	ed.onInit.add(function(ed, e) {
+		//your function goes here
+		triggerLivePreview(ed);
+	});
 }][0]
 JS;
     return $initArray;
