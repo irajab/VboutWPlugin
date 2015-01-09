@@ -111,7 +111,7 @@
 																			<div style="color: gray;font-size: 11px;" class="fsm fwn fcg shareHeaderLink">http://vbout.com/goto/A4</div>
 																		</div>
 																		
-																		<div style="margin-top: 8px;color: gray;" class="_1y1 _3-8x fsm fwn fcg shareHeaderContent" dir="ltr" id="u_ps_0_0_1c">This area is for information regarding our charitable donations. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Lorem...</div>
+																		<div style="margin-top: 8px;color: gray;" class="_1y1 _3-8x fsm fwn fcg shareHeaderContent" dir="ltr" id="u_ps_0_0_1c"></div>
 																	</div>
 																</a>
 															</div>
