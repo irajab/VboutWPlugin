@@ -1,0 +1,174 @@
+.clearfix:after{clear:both;content:' ';display:block;font-size:0;line-height:0;visibility:hidden;width:0;height:0}.clearfix{display:inline-block}* html .clearfix{height:1%}.clearfix{display:block}
+
+/* ============== */
+.facebook_livepreview_box a {
+    color: #444!important;
+	outline: 0 none!important;
+    text-decoration: none!important;
+}
+
+.facebook_livepreview_box { 
+	position: relative; 
+	word-wrap: break-word; 
+	font-family: Helvetica,Arial,'lucida grande',tahoma,verdana,arial,sans-serif; 
+	font-size: 12px;
+	color: #333;
+    direction: ltr;
+    line-height: 1.28;
+    text-align: left;
+}
+
+.facebook_livepreview_box .fbBorderTop { 
+	background-image: url("https://www.vbout.com/images/livepreview/facebook/uE44REcfpos.png");
+	background-position: 0 -9px;
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	height: 4px;
+	top: -1px;
+	width: 512px;
+	position: absolute;
+    z-index: 1;
+}
+
+.facebook_livepreview_box .fbBorderBottom {
+	background-image: url("https://www.vbout.com/images/livepreview/facebook/uE44REcfpos.png");
+    background-position: 0 -4px;
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    bottom: -1px;
+    height: 4px;
+    width: 512px;
+	position: absolute;
+    z-index: 1;
+}
+
+.facebook_livepreview_box .timelineUnitContainer {
+	background-color: #fff;
+    border-left: 1px solid #d3d6db;
+    border-right: 1px solid #d3d6db;
+    margin-bottom: 12px;
+    padding: 12px;
+    width: 486px;
+	position: relative;
+}
+
+.facebook_livepreview_box .fbPostHeader {
+	border: 0;
+	margin: 0 0 15px;
+	padding: 0;
+}
+
+.facebook_livepreview_box .facebookAvatar {
+	float: left;
+	margin-right: 8px;
+	color: #3b5998;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.facebook_livepreview_box .facebookAvatar img {
+	-webkit-border-radius: 2px;
+	height: 40px;
+	margin-right: 1px;
+	width: 40px;
+	display: block;
+}
+
+.facebook_livepreview_box .headerInfo {
+	display: table-cell;
+	vertical-align: top;
+	width: 10000px;
+}
+
+.facebook_livepreview_box .headerInfo  h5 {
+	font-size: 12px;
+	line-height: 16px;
+	margin: 4px 15px 1px 0;
+	font-weight: normal;
+	padding: 0;
+	color: #333;
+}
+
+.facebook_livepreview_box .headerInfo  .fcg {
+	color: gray;
+}
+
+.facebook_livepreview_box .headerInfo .fwb {
+	font-weight: bold;
+}
+
+.facebook_livepreview_box .headerInfo .fsm {
+	font-size: 11px;
+}
+
+.facebook_livepreview_box .headerInfo .fwn {
+	font-weight: normal;
+}
+
+.facebook_livepreview_box .headerInfo .uiLinkSubtle {
+	color: #9197a3!important;
+}
+
+.facebook_livepreview_box .headerInfo .uiLinkSubtle abbr { 
+	text-decoration: none!important;
+	border-bottom: none!important;
+}
+
+.facebook_livepreview_box .headerInfo .uiStreamPrivacy {
+	margin-left: 6px;
+	position: relative;
+	top: 0;
+	display: inline-block;
+	zoom: 1;
+}
+
+.facebook_livepreview_box .headerInfo .uiStreamPrivacy i {
+	zoom: 1;
+	background-image: url(https://www.vbout.com/images/livepreview/facebook/LyII_cr8Y1l.png);
+	background-size: auto;
+	background-repeat: no-repeat;
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	background-position: -13px -154px;
+	bottom: -1px;
+	margin-bottom: -5px;
+	position: relative;
+	vertical-align: top;
+}
+
+.facebook_livepreview_box .userContentContainer {
+	padding: 10px 0 15px;
+}
+
+.facebook_livepreview_box ._wk {
+	font-size: 14px;
+	line-height: 20px;
+}
+
+.facebook_livepreview_box .fbTimelineUFI {
+	background: #fff;
+	position: relative;
+	margin-left: -12px;
+	padding-top: 3px;
+	margin-bottom: -12px;
+	width: 510px;
+}
+
+.facebook_livepreview_box .fbTimelineFeedbackActions {
+	background-color: #fafbfb;
+	padding-bottom: 9px;
+	padding-top: 8px;
+	border-top: 1px solid #e9eaed;
+	padding: 8px 12px 9px;
+}
+
+.facebook_livepreview_box .UIActionLinks_bottom {
+	color: #999;
+}
+
+.facebook_livepreview_box .UIActionLinks a {
+	color: #3b5998;
+}
+
+/* ============== */

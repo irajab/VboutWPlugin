@@ -337,15 +337,34 @@ class VboutWP {
 		add_filter("plugin_action_links_vboutwp/vboutwp.php", array(__CLASS__, 'your_plugin_settings_link'));
 		//add_action('wp_dashboard_setup', array(__CLASS__, 'wp_dashboard_setup'));
 		//add_action('widgets_init', array(__CLASS__, 'widgets_init'));
+		
+		add_filter( 'tiny_mce_before_init', array(__CLASS__, 'wpse24113_tiny_mce_before_init') );
 	}
-public static function your_plugin_settings_link($links) { 
-	if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
-		$settings_link = '<a href="admin.php?page=vbout-connect">Settings</a>'; 
-	} else {
-		$settings_link = '<a href="admin.php?page=vbout-settings">Settings</a>'; 
+	
+	public static function your_plugin_settings_link($links) { 
+		if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
+			$settings_link = '<a href="admin.php?page=vbout-connect">Settings</a>'; 
+		} else {
+			$settings_link = '<a href="admin.php?page=vbout-settings">Settings</a>'; 
+		}
+		
+		array_unshift($links, $settings_link); 
+		return $links; 
 	}
-  array_unshift($links, $settings_link); 
-  return $links; 
+
+	
+	public static function wpse24113_tiny_mce_before_init( $initArray )
+	{
+$initArray['setup'] = <<<JS
+[function(ed) {
+	ed.onChange.add(function(ed, e) {
+		//your function goes here
+		triggerLivePreview(ed);
+	});
+
+}][0]
+JS;
+    return $initArray;
 }
 
 	public static function adminInit() 
@@ -365,6 +384,7 @@ public static function your_plugin_settings_link($links) {
 		
 		// CSS
 		wp_enqueue_style('jquery-ui-css', '//ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
+		wp_enqueue_style( 'vb-core-css', VBOUT_URL.'/css/vboutwp.css', array(), NULL );
 		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
 		wp_enqueue_style( 'vb-jsqtip-css', VBOUT_URL.'/js/jquery.qtip.min.css', array(), NULL );
 		
@@ -418,6 +438,9 @@ public static function your_plugin_settings_link($links) {
 				foreach($_REQUEST['channels'] as $channelName => $channelId) {
 					$params = array(
 						'message'=>strip_tags($_REQUEST['content']),
+						'photo'=>strip_tags($_REQUEST['photo_url']),
+						'photo_title'=>strip_tags($_REQUEST['photo_alt']),
+						'photo_url'=>strip_tags($_REQUEST['post_url']),
 						'channel'=>$channelName,
 						'channelid'=>implode(',', $channelId),
 						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
@@ -1148,6 +1171,9 @@ public static function your_plugin_settings_link($links) {
 					foreach($_REQUEST['channels'] as $channelName => $channelId) {
 						$params = array(
 							'message'=>strip_tags($_REQUEST['content']),
+							'photo'=>strip_tags($_REQUEST['photo_url']),
+							'photo_title'=>strip_tags($_REQUEST['photo_alt']),
+							'photo_url'=>strip_tags($_REQUEST['post_url']),
 							'channel'=>$channelName,
 							'channelid'=>implode(',', $channelId),
 							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
