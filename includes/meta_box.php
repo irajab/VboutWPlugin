@@ -10,6 +10,8 @@ $post = get_post($postId);
 	N.B. <span style="color: red;">The <?php echo ucfirst($post_type); ?> will be sent once you press the publish button.</span>
 </p>
 
+<input type="hidden" name="post_title" value="<?php echo $post->post_title; ?>" />
+<input type="hidden" name="post_description" value="<?php echo preg_replace('/\s+?(\S+)?$/', '', substr(strip_tags($post->post_content), 0, 201)); ?>" />
 <input type="hidden" name="post_url" value="<?php echo get_permalink($postId); ?>" />
 <input type="hidden" name="photo_url" value="" />
 <input type="hidden" name="photo_alt" value="" />
@@ -185,8 +187,8 @@ $post = get_post($postId);
 												</div>
 												
 												<div class="TwitterPhoto-media" style="display: none; background-color: #fff; border: 1px solid #e1e8ed; border-radius: 5px; box-sizing: border-box; max-height: 262px; overflow: hidden;text-align: center;">
-													<a style="display: inline-block; outline: 0 none;cursor: zoom-in; font-size: 0; max-width: 100%;" href="//twitter.com/vbouttestaccoun/status/484403446687084545/photo/1" class="TwitterPhoto-link media-thumbnail twitter-timeline-link">
-														<img lazyload="1" style="margin-top: -34.0px;max-width: 100%; vertical-align: middle;display: inline-block;" alt="Embedded image permalink" src="https://pbs.twimg.com/media/BrjyXj6CcAEzg8Y.jpg:large" class="TwitterPhoto-mediaSource">
+													<a style="display: inline-block; outline: 0 none;cursor: zoom-in; font-size: 0; max-width: 100%;" href="javascript://" class="TwitterPhoto-link media-thumbnail twitter-timeline-link">
+														<img lazyload="1" style="margin-top: -34.0px;max-width: 100%; vertical-align: middle;display: inline-block;" alt="Embedded image permalink" src="" class="TwitterPhoto-mediaSource">
 													</a>
 												</div>
 												

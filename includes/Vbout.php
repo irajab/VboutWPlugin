@@ -440,17 +440,45 @@ JS;
 				$sm = new SocialMediaWS($app_key);
 				
 				foreach($_REQUEST['channels'] as $channelName => $channelId) {
-					$params = array(
-						'message'=>strip_tags($_REQUEST['content']),
-						'photo'=>strip_tags($_REQUEST['photo_url']),
-						'photo_title'=>strip_tags($_REQUEST['photo_alt']),
-						'photo_url'=>strip_tags($_REQUEST['post_url']),
-						'channel'=>$channelName,
-						'channelid'=>implode(',', $channelId),
-						'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-						'scheduleddate'=>strtotime($scheduledDateTime)
-					);
-					
+					if ($channelName != 'twitter') {
+						$params = array(
+							//top share content
+							'message'=>($_REQUEST['photo_url'] != NULL)?$_REQUEST['post_title']:$_REQUEST['post_title'].' '.$_REQUEST['post_url'],
+							//share photo
+							'photo'=>strip_tags($_REQUEST['photo_url']),
+							//share photo title
+							'photo_title'=>strip_tags($_REQUEST['post_title']),
+							//share photo url
+							'photo_url'=>strip_tags($_REQUEST['post_url']),
+							//share description
+							'photo_caption'=>strip_tags($_REQUEST['post_description']),
+							
+							'channel'=>$channelName,
+							'channelid'=>implode(',', $channelId),
+							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+							'scheduleddate'=>strtotime($scheduledDateTime)
+						);
+					} else {
+						$params = array(
+							//top share content
+							'message'=>$_REQUEST['post_title'].' '.strip_tags($_REQUEST['post_url']),
+							//share photo
+							'photo'=>strip_tags($_REQUEST['photo_url']),
+							//share photo title
+							'photo_title'=>strip_tags($_REQUEST['post_title']),
+							//share photo url
+							'photo_url'=>strip_tags($_REQUEST['post_url']),
+							//share description
+							'photo_caption'=>strip_tags($_REQUEST['post_description']),
+							
+							'channel'=>$channelName,
+							'channelid'=>implode(',', $channelId),
+							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+							'scheduleddate'=>strtotime($scheduledDateTime)
+						);
+					}
+						
+					//echo '<pre>';
 					//print_r($params); exit;
 					//print_r($sm->addNewPost($params));
 					$results['social'][$channelName] = $sm->addNewPost($params);
@@ -1173,7 +1201,7 @@ JS;
 					$sm = new SocialMediaWS($app_key);
 
 					foreach($_REQUEST['channels'] as $channelName => $channelId) {
-						$params = array(
+						/*$params = array(
 							'message'=>strip_tags($_REQUEST['content']),
 							'photo'=>strip_tags($_REQUEST['photo_url']),
 							'photo_title'=>strip_tags($_REQUEST['photo_alt']),
@@ -1182,7 +1210,45 @@ JS;
 							'channelid'=>implode(',', $channelId),
 							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
 							'scheduleddate'=>strtotime($scheduledDateTime)
-						);
+						);*/
+						
+						if ($channelName != 'twitter') {
+							$params = array(
+								//top share content
+								'message'=>($_REQUEST['photo_url'] != NULL)?$_REQUEST['post_title']:$_REQUEST['post_title'].' '.$_REQUEST['post_url'],
+								//share photo
+								'photo'=>strip_tags($_REQUEST['photo_url']),
+								//share photo title
+								'photo_title'=>strip_tags($_REQUEST['post_title']),
+								//share photo url
+								'photo_url'=>strip_tags($_REQUEST['post_url']),
+								//share description
+								'photo_caption'=>strip_tags($_REQUEST['post_description']),
+								
+								'channel'=>$channelName,
+								'channelid'=>implode(',', $channelId),
+								'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+								'scheduleddate'=>strtotime($scheduledDateTime)
+							);
+						} else {
+							$params = array(
+								//top share content
+								'message'=>$_REQUEST['post_title'].' '.strip_tags($_REQUEST['post_url']),
+								//share photo
+								'photo'=>strip_tags($_REQUEST['photo_url']),
+								//share photo title
+								'photo_title'=>strip_tags($_REQUEST['post_title']),
+								//share photo url
+								'photo_url'=>strip_tags($_REQUEST['post_url']),
+								//share description
+								'photo_caption'=>strip_tags($_REQUEST['post_description']),
+								
+								'channel'=>$channelName,
+								'channelid'=>implode(',', $channelId),
+								'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+								'scheduleddate'=>strtotime($scheduledDateTime)
+							);
+						}
 						
 						//print_r($params);  exit;
 						//print_r($sm->addNewPost($params)); exit;

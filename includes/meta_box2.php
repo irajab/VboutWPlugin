@@ -8,9 +8,11 @@
 	
 	<form method="post" action="options.php" style="padding-top: 15px;">
 		<input type="hidden" name="post_id" value="<?php echo $postId; ?>" />
+		<input type="hidden" name="post_title" value="<?php echo $post->post_title; ?>" />
+		<input type="hidden" name="post_description" value="<?php echo preg_replace('/\s+?(\S+)?$/', '', substr(strip_tags($post->post_content), 0, 201)); ?>" />
 		<input type="hidden" name="post_url" value="<?php echo get_permalink($postId); ?>" />
 		<input type="hidden" name="photo_url" value="" />
-		<input type="hidden" name="photo_alt" value="" />
+		<input type="hidden" name="photo_alt" value="<?php echo get_permalink($postId); ?>" />
 		
 		<input type="hidden" name="option_page" value="vbout-schedule" />
 		<input type="hidden" name="action" value="update" />
@@ -107,8 +109,8 @@
 																<a class="_2qo3" href="javascript://" target="_blank" rel="nofollow" style="color: #3b5998;cursor: pointer;text-decoration: none;">
 																	<div class="_1x-" style="max-height: 98px;overflow: hidden;">
 																		<div class="_4ysy" id="u_ps_0_0_2i">
-																			<div class="_1x_ fwb shareHeaderTitle" dir="ltr" style="font-weight: bold;">Contact Us</div>
-																			<div style="color: gray;font-size: 11px;" class="fsm fwn fcg shareHeaderLink">http://vbout.com/goto/A4</div>
+																			<div class="_1x_ fwb shareHeaderTitle" dir="ltr" style="font-weight: bold;"></div>
+																			<div style="color: gray;font-size: 11px;" class="fsm fwn fcg shareHeaderLink"></div>
 																		</div>
 																		
 																		<div style="margin-top: 8px;color: gray;" class="_1y1 _3-8x fsm fwn fcg shareHeaderContent" dir="ltr" id="u_ps_0_0_1c"></div>
@@ -192,8 +194,8 @@
 														</div>
 														
 														<div class="TwitterPhoto-media" style="display: none; background-color: #fff; border: 1px solid #e1e8ed; border-radius: 5px; box-sizing: border-box; max-height: 262px; overflow: hidden;text-align: center;">
-															<a style="display: inline-block; outline: 0 none;cursor: zoom-in; font-size: 0; max-width: 100%;" href="//twitter.com/vbouttestaccoun/status/484403446687084545/photo/1" class="TwitterPhoto-link media-thumbnail twitter-timeline-link">
-																<img lazyload="1" style="margin-top: -34.0px;max-width: 100%; vertical-align: middle;display: inline-block;" alt="Embedded image permalink" src="https://pbs.twimg.com/media/BrjyXj6CcAEzg8Y.jpg:large" class="TwitterPhoto-mediaSource">
+															<a style="display: inline-block; outline: 0 none;cursor: zoom-in; font-size: 0; max-width: 100%;" href="javascript://" class="TwitterPhoto-link media-thumbnail twitter-timeline-link">
+																<img lazyload="1" style="margin-top: -34.0px;max-width: 100%; vertical-align: middle;display: inline-block;" alt="Embedded image permalink" src="" class="TwitterPhoto-mediaSource">
 															</a>
 														</div>
 														
