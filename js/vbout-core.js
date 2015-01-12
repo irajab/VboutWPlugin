@@ -12,19 +12,19 @@ function triggerLivePreview(ed)
 	
 	triggerImagePreview(imageUrl);
 	
-	if (ed.getContent() == '') {
+	if (jQuery('[name=post_title]').val() == '') {
 		jQuery(".facebook_livepreview_box .userContent").html('Please insert a text to share...');
 		jQuery(".twitter_livepreview_box .ProfileTweet-text").html('Please insert a text to share...');
 		jQuery(".linkedin_livepreview_box .share-body").html('Please insert a text to share...');
 	} else {
-		jQuery(".facebook_livepreview_box .userContent").html(ed.getContent().replace(/(<([^>]+)>)/ig,"").substring(0, 255));
-		jQuery(".twitter_livepreview_box .ProfileTweet-text").html(ed.getContent().replace(/(<([^>]+)>)/ig,"").substring(0, 255));
-		jQuery(".linkedin_livepreview_box .share-body").html(ed.getContent().replace(/(<([^>]+)>)/ig,"").substring(0, 255));
+		jQuery(".facebook_livepreview_box .userContent").html(jQuery('[name=post_title]').val());
+		jQuery(".twitter_livepreview_box .ProfileTweet-text").html(jQuery('[name=post_title]').val()+' ('+jQuery('[name=post_url]').val()+')');
+		jQuery(".linkedin_livepreview_box .share-body").html(jQuery('[name=post_title]').val());
 	}
 	
 	if (imageUrl == undefined) {
 		jQuery('[name=photo_url]').val('');
-		jQuery('[name=photo_alt]').val('');
+		//jQuery('[name=photo_alt]').val('');
 		
 		jQuery('.facebook_livepreview_box .shareHeaderTitle').hide();
 		jQuery('.linkedin_livepreview_box .share-title').hide();
@@ -40,20 +40,20 @@ function triggerLivePreview(ed)
 	} else {
 		jQuery('[name=photo_url]').val(imageUrl);
 				
-		if (imageAlt != 'undefined') {
+		if (jQuery('[name=post_title]').val() != '') {
 			hasShare = true;
 			
-			jQuery('[name=photo_alt]').val(imageAlt);
+			//jQuery('[name=photo_alt]').val(imageAlt);
 			
-			jQuery('.facebook_livepreview_box .shareHeaderTitle').html(imageAlt);
+			jQuery('.facebook_livepreview_box .shareHeaderTitle').html(jQuery('[name=post_title]').val());
 			jQuery('.facebook_livepreview_box .shareHeaderTitle').show();
 			
-			jQuery('.linkedin_livepreview_box .share-title .title').html(imageAlt);
+			jQuery('.linkedin_livepreview_box .share-title .title').html(jQuery('[name=post_title]').val());
 			jQuery('.linkedin_livepreview_box .share-title').show();
 			
 			console.log('hasTitle');
 		} else {
-			jQuery('[name=photo_alt]').val('');
+			//jQuery('[name=photo_alt]').val('');
 			
 			jQuery('.facebook_livepreview_box .shareHeaderTitle').hide();
 			jQuery('.linkedin_livepreview_box .share-title').hide();
@@ -72,6 +72,20 @@ function triggerLivePreview(ed)
 		} else {
 			jQuery('.facebook_livepreview_box .shareHeaderLink').hide();
 			jQuery('.linkedin_livepreview_box .share-link').hide();
+		}
+		if (jQuery('[name=post_description]').val() != '') {
+			hasShare = true; 
+			
+			jQuery('.facebook_livepreview_box .shareHeaderContent').html(jQuery('[name=post_description]').val());
+			jQuery('.facebook_livepreview_box .shareHeaderContent').show();
+			
+			//jQuery('.linkedin_livepreview_box .share-link').html(jQuery('[name=post_description]').val());
+			//jQuery('.linkedin_livepreview_box .share-link').show();
+			
+			//console.log('hasURL');
+		} else {
+			jQuery('.facebook_livepreview_box .shareHeaderContent').hide();
+			//jQuery('.linkedin_livepreview_box .share-link').hide();
 		}
 		
 		if (imageUrl != undefined) {
