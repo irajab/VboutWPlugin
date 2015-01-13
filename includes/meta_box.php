@@ -214,13 +214,25 @@ $post = get_post($postId);
 				<th>Linkedin:</th>
 				<td>
 					<select name="channels[linkedin][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
-					<?php	foreach($channels['Linkedin'] as $profile): ?>
-						<?php	if (!isset($channels['default']['Linkedin']) || (isset($channels['default']['Linkedin']) && in_array($profile['value'], $channels['default']['Linkedin']))): ?>
+					<?php	foreach($channels['Linkedin']['profiles'] as $profile): ?>
+						<?php	if (!isset($channels['default']['Linkedin']['profiles']) || (isset($channels['default']['Linkedin']['profiles']) && in_array($profile['value'], $channels['default']['Linkedin']['profiles']))): ?>
 						<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
 						<?php	endif; ?>
 					<?php	endforeach; ?>
 					</select>
-			
+				</td>
+			</tr>
+			<tr scope="row">
+				<th>Linkedin Companies:</th>
+				<td>
+					<select name="channels[linkedin][companies][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
+					<?php	foreach($channels['Linkedin_companies'] as $profile): ?>
+						<?php	if (!isset($channels['default']['Linkedin']['companies']) || (isset($channels['default']['Linkedin']['companies']) && in_array($profile['value'], $channels['default']['Linkedin']['companies']))): ?>
+						<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
+						<?php	endif; ?>
+					<?php	endforeach; ?>
+					</select>
+					
 					<div class="livePreviewCanvas da-form-item" id="LinkedinLivePreview" style="padding-top: 15px;">
 						<a href="javascript://" style="color: #9bc035; display: block; margin-bottom: 10px;">Preview before you publish</a>
 						<div class="livePreviewBar" style="display: none; border-bottom: 1px solid #eee; border-top: 1px solid #eee; padding: 20px 0; width: 512px;">

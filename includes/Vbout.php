@@ -406,9 +406,9 @@ JS;
 			$hasError = false;
 			$errorMessage = '';
 			
-			/*echo '<pre>';
-			print_r($_REQUEST);
-			return;*/
+			////echo '<pre>';
+			////print_r($_REQUEST); exit;
+			////return;
 			
 			$post = get_post($_POST['post_id']);
 			
@@ -441,23 +441,47 @@ JS;
 				
 				foreach($_REQUEST['channels'] as $channelName => $channelId) {
 					if ($channelName != 'twitter') {
-						$params = array(
-							//top share content
-							'message'=>($_REQUEST['photo_url'] != NULL)?$_REQUEST['post_title']:$_REQUEST['post_title'].' '.$_REQUEST['post_url'],
-							//share photo
-							'photo'=>strip_tags($_REQUEST['photo_url']),
-							//share photo title
-							'photo_title'=>strip_tags($_REQUEST['post_title']),
-							//share photo url
-							'photo_url'=>strip_tags($_REQUEST['post_url']),
-							//share description
-							'photo_caption'=>strip_tags($_REQUEST['post_description']),
-							
-							'channel'=>$channelName,
-							'channelid'=>implode(',', $channelId),
-							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-							'scheduleddate'=>strtotime($scheduledDateTime)
-						);
+						if ($channelName != 'linkedin_companies') {
+							$params = array(
+								//top share content
+								'message'=>($_REQUEST['photo_url'] != NULL)?$_REQUEST['post_title']:$_REQUEST['post_title'].' '.$_REQUEST['post_url'],
+								//share photo
+								'photo'=>strip_tags($_REQUEST['photo_url']),
+								//share photo title
+								'photo_title'=>strip_tags($_REQUEST['post_title']),
+								//share photo url
+								'photo_url'=>strip_tags($_REQUEST['post_url']),
+								//share description
+								'photo_caption'=>strip_tags($_REQUEST['post_description']),
+								
+								'channel'=>$channelName,
+								'channelid'=>implode(',', $channelId),
+								'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+								'scheduleddate'=>strtotime($scheduledDateTime),
+								'trackableLinks'=>isset($_REQUEST['vb_post_schedule_shortenurls'])?'true':'false'
+							);
+						} else {
+							foreach($channelId as $channelLinkedin) {
+								$params = array(
+									//top share content
+									'message'=>($_REQUEST['photo_url'] != NULL)?$_REQUEST['post_title']:$_REQUEST['post_title'].' '.$_REQUEST['post_url'],
+									//share photo
+									'photo'=>strip_tags($_REQUEST['photo_url']),
+									//share photo title
+									'photo_title'=>strip_tags($_REQUEST['post_title']),
+									//share photo url
+									'photo_url'=>strip_tags($_REQUEST['post_url']),
+									//share description
+									'photo_caption'=>strip_tags($_REQUEST['post_description']),
+									
+									'channel'=>'linkedin_company',
+									'channelid'=>implode(',', $channelId),
+									'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
+									'scheduleddate'=>strtotime($scheduledDateTime),
+									'trackableLinks'=>isset($_REQUEST['vb_post_schedule_shortenurls'])?'true':'false'
+								);
+							}
+						}
 					} else {
 						$params = array(
 							//top share content
@@ -474,12 +498,13 @@ JS;
 							'channel'=>$channelName,
 							'channelid'=>implode(',', $channelId),
 							'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-							'scheduleddate'=>strtotime($scheduledDateTime)
+							'scheduleddate'=>strtotime($scheduledDateTime),
+							'trackableLinks'=>isset($_REQUEST['vb_post_schedule_shortenurls'])?'true':'false'
 						);
 					}
 						
-					//echo '<pre>';
-					//print_r($params); exit;
+					///echo '<pre>';
+					///print_r($params);
 					//print_r($sm->addNewPost($params));
 					$results['social'][$channelName] = $sm->addNewPost($params);
 					
@@ -492,7 +517,7 @@ JS;
 					}
 				}
 			}
-			
+
 			if (isset($_REQUEST['vb_post_to_campaign'])) {
 				$em = new EmailMarketingWS($app_key);
 				
@@ -574,7 +599,12 @@ JS;
 			///		\_ REMOVE ALL DEFAULT FIRST
 			if (isset($_POST['vbout_sm_channels_linkedin']) && $_POST['vbout_sm_channels_linkedin'] != NULL) {
 				foreach($_POST['vbout_sm_channels_linkedin'] as $profile)
-					$channels['default']['Linkedin'][] = $profile;
+					$channels['default']['Linkedin']['profiles'][] = $profile;
+			}
+			
+			if (isset($_POST['vbout_sm_channels_linkedincompanies']) && $_POST['vbout_sm_channels_linkedincompanies'] != NULL) {
+				foreach($_POST['vbout_sm_channels_linkedincompanies'] as $company)
+					$channels['default']['Linkedin']['companies'][] = $company;
 			}
 			
 			update_option("vbout_sm_channels", serialize($channels));
@@ -653,9 +683,14 @@ JS;
 							$defaultChannels['Twitter'][] = array('value'=>$profile['id'], 'label'=>$profile['fullname'], 'default'=>false);
 					}
 					
-					if (isset($channels['Linkedin']) && $channels['Linkedin']['count'] > 0) {
+					if (isset($channels['Linkedin']['profiles']) && $channels['Linkedin']['count'] > 0) {
 						foreach($channels['Linkedin']['profiles'] as $profile)
-							$defaultChannels['Linkedin'][] = array('value'=>$profile['id'], 'label'=>$profile['fullname'], 'default'=>false);
+							$defaultChannels['Linkedin']['profiles'][] = array('value'=>$profile['id'], 'label'=>$profile['fullname'], 'default'=>false);
+					}
+
+					if (isset($channels['Linkedin']['companies']) && $channels['Linkedin']['count'] > 0) {
+						foreach($channels['Linkedin']['companies'] as $company)
+							$defaultChannels['Linkedin']['companies'][] = array('value'=>$company['companyId'], 'label'=>$company['companyName'], 'default'=>false);
 					}
 
 					update_option("vbout_sm_channels", serialize($defaultChannels));
@@ -967,11 +1002,21 @@ JS;
 				self::template('form_objects/dropdown', array(
 					'multiple' => true,
 					'class' => 'chosen-select',
-					'options' => $channels['Linkedin'],
+					'options' => $channels['Linkedin']['profiles'],
 					'key' => 'vbout_sm_channels_linkedin',
 					'name' => __( 'Linkedin Profiles', 'vblng' ),
-					'value' => isset($channels['default']['Linkedin'])?$channels['default']['Linkedin']:array(),
+					'value' => isset($channels['default']['Linkedin']['profiles'])?$channels['default']['Linkedin']['profiles']:array(),
 					'description' => __( 'Choose which Linkedin profile(s) you want to be shown in the social media menu. <br /><span style="color: red;">Note: All profiles will be shown if none chosen.</span>', 'vblng' )
+				)),
+				
+				self::template('form_objects/dropdown', array(
+					'multiple' => true,
+					'class' => 'chosen-select',
+					'options' => $channels['Linkedin']['companies'],
+					'key' => 'vbout_sm_channels_linkedincompanies',
+					'name' => __( 'Linkedin Companies', 'vblng' ),
+					'value' => isset($channels['default']['Linkedin']['companies'])?$channels['default']['Linkedin']['companies']:array(),
+					'description' => __( 'Choose which Linkedin companies(s) you want to be shown in the social media menu. <br /><span style="color: red;">Note: All companies will be shown if none chosen.</span>', 'vblng' )
 				)),
 			));
 				/////////////////////////////////////////////////////////////////////////////////////////
@@ -1228,7 +1273,8 @@ JS;
 								'channel'=>$channelName,
 								'channelid'=>implode(',', $channelId),
 								'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-								'scheduleddate'=>strtotime($scheduledDateTime)
+								'scheduleddate'=>strtotime($scheduledDateTime),
+								'trackableLinks'=>isset($_REQUEST['vb_post_schedule_shortenurls'])?'true':'false'
 							);
 						} else {
 							$params = array(
@@ -1246,7 +1292,8 @@ JS;
 								'channel'=>$channelName,
 								'channelid'=>implode(',', $channelId),
 								'isscheduled'=>isset($_REQUEST['vb_post_schedule_isscheduled'])?'true':'false',
-								'scheduleddate'=>strtotime($scheduledDateTime)
+								'scheduleddate'=>strtotime($scheduledDateTime),
+								'trackableLinks'=>isset($_REQUEST['vb_post_schedule_shortenurls'])?'true':'false'
 							);
 						}
 						

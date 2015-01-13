@@ -23,6 +23,80 @@
 	
 		<br />
 		
+		<?php if ($emailMarketingActivated): ?>
+		<div id="vbout_post_to_campaign_box" class="postbox" style="padding: 0 10px;">
+			<h3>
+				<span>
+					<label><input type="checkbox" name="vb_post_to_campaign" id="vb_post_to_campaign" /><?php _e( 'Send as an email campaign?', 'vblng' ); ?></label>
+				</span>
+			</h3>
+
+			<div class="inside" style="display: none;">
+				<table class="form-table">
+					<tr scope="row">
+						<th><?php _e( 'Choose list to email the campaign to:', 'vblng' ); ?></th>
+						<td>
+							<?php if (isset($lists['lists']) && $lists['lists'] != NULL): ?>
+							<select id="campaigns" class="chosen-select" style="width:350px;" tabindex="2" name="campaign[]" multiple="multiple">
+							<?php	foreach($lists['lists'] as $list): ?>
+							<?php		if (($lists['default'] == NULL) || ($lists['default'] != NULL && in_array($list['value'], $lists['default']))): ?>
+								<option value="g_<?php echo $list['value']; ?>"><?php echo $list['label']; ?></option>
+							<?php		endif; ?>
+							<?php	endforeach; ?>
+							</select>
+							<?php endif; ?>
+						</td>
+					</tr>
+
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Name', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_emailname" id="vb_post_schedule_emailname" value="<?php echo get_option('vbout_em_emailname'); ?>" class="regular-text" />
+						</td>
+					</tr>
+					
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Subject', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_emailsubject" id="vb_post_schedule_emailsubject" value="<?php echo get_option('vbout_em_emailsubject'); ?>" class="regular-text" />
+						</td>
+					</tr>
+					
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_fromemail"><?php _e( 'From Email', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_fromemail" id="vb_post_schedule_fromemail" value="<?php echo get_option('vbout_em_fromemail'); ?>" class="regular-text" />
+						</td>
+					</tr>
+					
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_fromname"><?php _e( 'From Name', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_fromname" id="vb_post_schedule_fromname" value="<?php echo get_option('vbout_em_fromname'); ?>" class="regular-text" />
+						</td>
+					</tr>
+					
+					<tr scope="row">
+						<th scope="row" style="width: auto;">
+							<label for="vb_post_schedule_replyto"><?php _e( 'Reply to', 'vblng' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="vb_post_schedule_replyto" id="vb_post_schedule_replyto" value="<?php echo get_option('vbout_em_replyto'); ?>" class="regular-text" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<?php endif; ?>
+				
 		<?php if ($socialMediaActivated && $channels != NULL): ?>
 		<div id="vbout_post_to_channels_box" class="postbox" style="padding: 0 10px;">
 			<h3>
@@ -221,8 +295,21 @@
 						<th>Linkedin:</th>
 						<td>
 							<select name="channels[linkedin][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
-							<?php	foreach($channels['Linkedin'] as $profile): ?>
-								<?php	if (!isset($channels['default']['Linkedin']) || (isset($channels['default']['Linkedin']) && in_array($profile['value'], $channels['default']['Linkedin']))): ?>
+							<?php	foreach($channels['Linkedin']['profiles'] as $profile): ?>
+								<?php	if (!isset($channels['default']['Linkedin']['profiles']) || (isset($channels['default']['Linkedin']['profiles']) && in_array($profile['value'], $channels['default']['Linkedin']['profiles']))): ?>
+								<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
+								<?php	endif; ?>
+							<?php	endforeach; ?>
+							</select>
+						</td>
+					</tr>
+					
+					<tr scope="row">
+						<th>Linkedin Companies:</th>
+						<td>
+							<select name="channels[linkedin_companies][]" class="chosen-select channels" style="width:350px;" multiple="multiple">
+							<?php	foreach($channels['Linkedin']['companies'] as $profile): ?>
+								<?php	if (!isset($channels['default']['Linkedin']['companies']) || (isset($channels['default']['Linkedin']['companies']) && in_array($profile['value'], $channels['default']['Linkedin']['companies']))): ?>
 								<option value="<?php echo $profile['value']; ?>"><?php echo $profile['label']; ?></option>
 								<?php	endif; ?>
 							<?php	endforeach; ?>
@@ -305,80 +392,6 @@
 							<label for="vb_post_schedule_shortenurls">
 								<input type="checkbox" name="vb_post_schedule_shortenurls" id="vb_post_schedule_shortenurls" value="yes" />
 							</label>
-						</td>
-					</tr>
-				</table>
-			</div>
-		</div>
-		<?php endif; ?>
-		
-		<?php if ($emailMarketingActivated): ?>
-		<div id="vbout_post_to_campaign_box" class="postbox" style="padding: 0 10px;">
-			<h3>
-				<span>
-					<label><input type="checkbox" name="vb_post_to_campaign" id="vb_post_to_campaign" /><?php _e( 'Send as an email campaign?', 'vblng' ); ?></label>
-				</span>
-			</h3>
-
-			<div class="inside" style="display: none;">
-				<table class="form-table">
-					<tr scope="row">
-						<th><?php _e( 'Choose list to email the campaign to:', 'vblng' ); ?></th>
-						<td>
-							<?php if (isset($lists['lists']) && $lists['lists'] != NULL): ?>
-							<select id="campaigns" class="chosen-select" style="width:350px;" tabindex="2" name="campaign[]" multiple="multiple">
-							<?php	foreach($lists['lists'] as $list): ?>
-							<?php		if (($lists['default'] == NULL) || ($lists['default'] != NULL && in_array($list['value'], $lists['default']))): ?>
-								<option value="g_<?php echo $list['value']; ?>"><?php echo $list['label']; ?></option>
-							<?php		endif; ?>
-							<?php	endforeach; ?>
-							</select>
-							<?php endif; ?>
-						</td>
-					</tr>
-
-					<tr scope="row">
-						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Name', 'vblng' ); ?></label>
-						</th>
-						<td>
-							<input type="text" name="vb_post_schedule_emailname" id="vb_post_schedule_emailname" value="<?php echo get_option('vbout_em_emailname'); ?>" class="regular-text" />
-						</td>
-					</tr>
-					
-					<tr scope="row">
-						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Subject', 'vblng' ); ?></label>
-						</th>
-						<td>
-							<input type="text" name="vb_post_schedule_emailsubject" id="vb_post_schedule_emailsubject" value="<?php echo get_option('vbout_em_emailsubject'); ?>" class="regular-text" />
-						</td>
-					</tr>
-					
-					<tr scope="row">
-						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_fromemail"><?php _e( 'From Email', 'vblng' ); ?></label>
-						</th>
-						<td>
-							<input type="text" name="vb_post_schedule_fromemail" id="vb_post_schedule_fromemail" value="<?php echo get_option('vbout_em_fromemail'); ?>" class="regular-text" />
-						</td>
-					</tr>
-					
-					<tr scope="row">
-						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_fromname"><?php _e( 'From Name', 'vblng' ); ?></label>
-						</th>
-						<td>
-							<input type="text" name="vb_post_schedule_fromname" id="vb_post_schedule_fromname" value="<?php echo get_option('vbout_em_fromname'); ?>" class="regular-text" />
-						</td>
-					</tr>
-					
-					<tr scope="row">
-						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_replyto"><?php _e( 'Reply to', 'vblng' ); ?></label>
-						</th>
-						<td>
-							<input type="text" name="vb_post_schedule_replyto" id="vb_post_schedule_replyto" value="<?php echo get_option('vbout_em_replyto'); ?>" class="regular-text" />
 						</td>
 					</tr>
 				</table>
