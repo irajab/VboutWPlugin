@@ -1,7 +1,6 @@
 <?php
 class VboutWP {
 	const PLUGIN_VERSION = "1.0";
-	const PLUGIN_SIDEBAR_ICON = "https://www.vbout.com/images/wp-logo.png?new";
 
 	const DEFAULT_TIMEZONE = "America/New_York";
 	
@@ -747,10 +746,10 @@ JS;
 		$plugin_status = get_option('vbout_status');
 		
 		if (in_array($plugin_status, array(self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_DISACTIVE, self::VBOUT_STATUS_ERROR))) {
-			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), VBOUT_URL."/images/wp-logo.png", 1000);
 		} elseif ($plugin_status == self::VBOUT_STATUS_ACTIVE) {
-			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
-			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), self::PLUGIN_SIDEBAR_ICON, 1000);
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-connect', array(__CLASS__, 'admin_options_page'), VBOUT_URL."/images/wp-logo.png", 1000);
+			add_menu_page( __( 'Vbout Settings', 'vblng' ), __( 'Vbout Settings', 'vblng' ), 'manage_options', 'vbout-settings', array(__CLASS__, 'admin_options_page'), VBOUT_URL."/images/wp-logo.png", 1000);
 		}
 		
 		///	PLUGIN GENERAL SETTINGS

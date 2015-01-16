@@ -9,11 +9,6 @@
  * License: GPLv2
  */
 
-///	IMPORTANT FOR FLASH MESSAGES - DIDN'T FIND ANY OTHER FREAKN WAY
-function register_session() { if( !session_id() ) session_start(); }
-
-add_action('init','register_session');
-
 //register_activation_hook( __FILE__, array( 'VboutWP', 'on_activation' ) );
 register_deactivation_hook( __FILE__, array( 'VboutWP', 'on_deactivation' ) );
 //register_uninstall_hook( __FILE__, array( 'VboutWP', 'on_uninstall' ) );
