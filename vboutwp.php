@@ -32,7 +32,7 @@ require_once VBOUT_DIR . "/includes/Vbout.php";
 
 VboutWP::process();
 
-if (current_user_can("administrator")) {
+if (current_user_can("publish_posts")) {
 	if (basename($_SERVER['SCRIPT_FILENAME']) == "options.php" && $_POST['action'] == "update" && $_POST['option_page'] == "vbout-connect") {
 		///	VERIFY KEYS AND POPULATE API VARIABLES
 		VboutWP::checkApiStatus();
