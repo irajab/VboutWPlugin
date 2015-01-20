@@ -415,11 +415,11 @@ JS;
 			
 			date_default_timezone_set($business['timezone']);
 			
-			if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
+			if (get_option('vbout_method') == self::VBOUT_METHOD_USERKEY) {
 				$app_key = array(
 					'key' => get_option('vbout_userkey')
 				);
-			} elseif ($_POST['vbout_method'] == self::VBOUT_METHOD_APPKEY) {
+			} elseif (get_option('vbout_method') == self::VBOUT_METHOD_APPKEY) {
 				$app_key = array(
 					'app_key' => get_option('vbout_appkey'),
 					'client_secret' => get_option('vbout_clientsecret'),
@@ -1217,11 +1217,11 @@ JS;
 				//print_r($_REQUEST);
 				//return;
 					
-				if ($_POST['vbout_method'] == self::VBOUT_METHOD_USERKEY) {
+				if (get_option('vbout_method') == self::VBOUT_METHOD_USERKEY) {
 					$app_key = array(
 						'key' => get_option('vbout_userkey')
 					);
-				} elseif ($_POST['vbout_method'] == self::VBOUT_METHOD_APPKEY) {
+				} elseif (get_option('vbout_method') == self::VBOUT_METHOD_APPKEY) {
 					$app_key = array(
 						'app_key' => get_option('vbout_appkey'),
 						'client_secret' => get_option('vbout_clientsecret'),
