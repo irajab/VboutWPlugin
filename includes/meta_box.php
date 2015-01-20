@@ -344,7 +344,7 @@ $post = get_post($postId);
 
 			<tr scope="row">
 				<th scope="row" style="width: auto;">
-					<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Name', 'vblng' ); ?></label>
+					<label for="vb_post_schedule_emailsubject"><?php _e( 'Campaign Name', 'vblng' ); ?></label>
 				</th>
 				<td>
 					<input type="text" name="vb_post_schedule_emailname" id="vb_post_schedule_emailname" value="<?php echo (get_option('vbout_em_emailname') != '')?get_option('vbout_em_emailname'):((isset($_GET['action']) && $_GET['action'] == 'edit')?$post->post_title:''); ?>" class="regular-text" />
@@ -469,6 +469,8 @@ $post = get_post($postId);
 				submitToVboutErrMessage += 'At lease choose one channel to submit to! \n';
 			}
 			
+			var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+			
 			if (jQuery('#vb_post_to_campaign').attr('checked')) {
 				if (jQuery('#campaigns option:selected').length == 0) {
 					submitToVbout = false;
@@ -485,6 +487,11 @@ $post = get_post($postId);
 					submitToVboutErrMessage += 'From Email is required! \n';
 				}
 				
+				if (!regex.test(jQuery('#vb_post_schedule_fromemail').val())) {
+					submitToVbout = false;
+					submitToVboutErrMessage += 'From Email must be a valid email address! \n';
+				}
+				
 				if (jQuery('#vb_post_schedule_fromname').val() == '') {
 					submitToVbout = false;
 					submitToVboutErrMessage += 'From Name is required! \n';
@@ -494,8 +501,13 @@ $post = get_post($postId);
 					submitToVbout = false;
 					submitToVboutErrMessage += 'Reply to is required! \n';
 				}
+				
+				if (!regex.test(jQuery('#vb_post_schedule_replyto').val())) {
+					submitToVbout = false;
+					submitToVboutErrMessage += 'Reply to must be a valid email address! \n';
+				}
 			}
-			
+						
 			if (!submitToVbout)
 				alert(submitToVboutErrMessage);
 	

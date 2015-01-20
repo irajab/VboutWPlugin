@@ -2,6 +2,7 @@
 	$postId = $_GET['id'];
 	
 	$post = get_post($postId);
+	$post_type = get_post_type($postId);
 ?>
 <div class="wrap">
 	<h2>Send to Vbout: <?php echo $post->post_title; ?></h2>
@@ -50,7 +51,7 @@
 
 					<tr scope="row">
 						<th scope="row" style="width: auto;">
-							<label for="vb_post_schedule_emailsubject"><?php _e( 'Email Name', 'vblng' ); ?></label>
+							<label for="vb_post_schedule_emailsubject"><?php _e( 'Campaign Name', 'vblng' ); ?></label>
 						</th>
 						<td>
 							<input type="text" name="vb_post_schedule_emailname" id="vb_post_schedule_emailname" value="<?php echo get_option('vbout_em_emailname'); ?>" class="regular-text" />
@@ -463,6 +464,8 @@
 
 				<tr valign="top">
 					<th scope="row">
+						<input type="button" class="button-primary" id="Cancel" value="Cancel" />
+						&nbsp;&nbsp;
 						<input type="submit" class="button-primary" id="Submit" value="Submit" />
 					</th>
 					<td>&nbsp;</td>
@@ -477,6 +480,10 @@
 	jQuery(document).ready(function() { 
 		jQuery('.chosen-select').chosen({'width':'90%'});
 		
+		jQuery('#Cancel').click(function() { 
+			window.location = '<?php echo admin_url( 'edit.php?post_type='.$post_type, 'https' ); ?>';
+		});
+		
 		jQuery('#Submit').click(function() { 
 			var submitToVbout = true;
 			var submitToVboutErrMessage = '';
@@ -485,6 +492,8 @@
 				submitToVbout = false;
 				submitToVboutErrMessage += 'At lease choose one channel to submit to! \n';
 			}
+			
+			var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
 			
 			if (jQuery('#vb_post_to_campaign').attr('checked')) {
 				if (jQuery('#campaigns option:selected').length == 0) {
@@ -502,6 +511,11 @@
 					submitToVboutErrMessage += 'From Email is required! \n';
 				}
 				
+				if (!regex.test(jQuery('#vb_post_schedule_fromemail').val())) {
+					submitToVbout = false;
+					submitToVboutErrMessage += 'From Email must be a valid email address! \n';
+				}
+				
 				if (jQuery('#vb_post_schedule_fromname').val() == '') {
 					submitToVbout = false;
 					submitToVboutErrMessage += 'From Name is required! \n';
@@ -511,8 +525,13 @@
 					submitToVbout = false;
 					submitToVboutErrMessage += 'Reply to is required! \n';
 				}
+				
+				if (!regex.test(jQuery('#vb_post_schedule_replyto').val())) {
+					submitToVbout = false;
+					submitToVboutErrMessage += 'Reply to must be a valid email address! \n';
+				}
 			}
-			
+						
 			if (!submitToVbout)
 				alert(submitToVboutErrMessage);
 	
