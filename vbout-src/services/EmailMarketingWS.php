@@ -221,7 +221,7 @@ class EmailMarketingWS extends Vbout
 		$result = array();
 		
 		try {
-			$contact = $this->getcontact(array('email'=>$email));
+			$contact = $this->getcontactbyemail(array('email'=>$email));
 
             if ($contact != null && isset($contact['data'])) {
                 $result = array_merge($result, $contact['data']['contact']);
