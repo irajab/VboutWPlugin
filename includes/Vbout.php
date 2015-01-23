@@ -332,6 +332,7 @@ class VboutWP {
 	{
 		///	ADDING VBOUT MENU TO WORDPRESS LEFT SIDEBAR
 		add_action('admin_menu', array(__CLASS__, 'admin_menu'));
+		add_action('synchronize_wp_users_hook', array(__CLASS__, 'synchronize_wp_users'));
 		
 		add_filter("plugin_action_links_vboutwp/vboutwp.php", array(__CLASS__, 'your_plugin_settings_link'));
 		//add_action('wp_dashboard_setup', array(__CLASS__, 'wp_dashboard_setup'));
@@ -1405,6 +1406,64 @@ JS;
 	}
 	///////////////////////////////////////////////////////////////////////////////////////
 	
+	public static function synchronize_wp_users()
+	{
+		$listToSync = get_option('sync_emaillist');
+		
+		if ($listToSync == NULL)
+			return;
+		
+		//	GET WORDPRESS USERS
+		$blogUsers = get_users();
+		
+		if ($blogUsers != NULL) {
+		
+			if (get_option('vbout_method') == self::VBOUT_METHOD_USERKEY) {
+				$app_key = array(
+					'key' => get_option('vbout_userkey')
+				);
+			} elseif (get_option('vbout_method') == self::VBOUT_METHOD_APPKEY) {
+				$app_key = array(
+					'app_key' => get_option('vbout_appkey'),
+					'client_secret' => get_option('vbout_clientsecret'),
+					'oauth_token' => get_option('vbout_authtoken')
+				);
+			}
+
+			foreach($blogUsers as $user) {
+				//	CHECK IF USER ALREADY EXISTS
+				$em = new EmailMarketingWS($app_key);
+			
+				$params = array(
+					'email'=>$user->user_email
+				);
+				
+				//print_r($params);
+				//print_r($em->searchContact($params));
+				$results['contact'] = $em->searchContact($params);
+			
+				if (is_array($results['contact']) && isset($results['contact']['errorCode'])) {
+					//	CONTACT NOT FOUND
+					//	ADD NEW CONTACT
+					$cparams = array(
+						'email'=>$user->user_email,
+						'status'=>1,
+						'listid'=>$listToSync
+					);
+						
+					//print_r($params);
+					//print_r($em->addNewContact($params));
+					$results['contact'] = $em->addNewContact($params);
+				}
+			}
+		}
+	}
+	
+	public static function on_activation()
+	{
+		wp_schedule_event( time(), 'daily', 'synchronize_wp_users_hook' );
+	}
+	
 	///////////////////////////////////////////////////////////////////////////////////////
 	//+	CLEANING OPTIONS FROM DATABASE AFTER DESACTIVATION - PLEASE DO NOT REMOVE		///
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -1412,9 +1471,11 @@ JS;
 	{
 		if ( ! current_user_can( 'activate_plugins' ) )
             return;
+		
+		wp_clear_scheduled_hook( 'synchronize_wp_users_hook' );
+		
         $plugin = isset( $_REQUEST['plugin'] ) ? $_REQUEST['plugin'] : '';
         check_admin_referer( "deactivate-plugin_{$plugin}" );
-		
 		
 		foreach (self::$options as $optionKey => $optionVars):
 			foreach($optionVars as $optionVar):

@@ -9,7 +9,7 @@
  * License: GPLv2
  */
 
-//register_activation_hook( __FILE__, array( 'VboutWP', 'on_activation' ) );
+register_activation_hook( __FILE__, array( 'VboutWP', 'on_activation' ) );
 register_deactivation_hook( __FILE__, array( 'VboutWP', 'on_deactivation' ) );
 //register_uninstall_hook( __FILE__, array( 'VboutWP', 'on_uninstall' ) );
 
