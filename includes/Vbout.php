@@ -1433,19 +1433,15 @@ JS;
 			foreach($blogUsers as $user) {
 				//	CHECK IF USER ALREADY EXISTS
 				$em = new EmailMarketingWS($app_key);
-			
-				$params = array(
-					'email'=>$user->user_email
-				);
-				
+							
 				//print_r($params);
 				//print_r($em->searchContact($params));
-				$results['contact'] = $em->searchContact($params);
+				$results['contact'] = $em->searchContact($user->user_email);
 			
 				if (is_array($results['contact']) && isset($results['contact']['errorCode'])) {
 					//	CONTACT NOT FOUND
 					//	ADD NEW CONTACT
-					$cparams = array(
+					$params = array(
 						'email'=>$user->user_email,
 						'status'=>1,
 						'listid'=>$listToSync
