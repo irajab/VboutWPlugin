@@ -339,6 +339,12 @@ class VboutWP {
 		//add_action('widgets_init', array(__CLASS__, 'widgets_init'));
 		
 		add_filter( 'tiny_mce_before_init', array(__CLASS__, 'wpse24113_tiny_mce_before_init') );
+		
+		//	APPEND TRACKING TO FOOTER IF ENABLED
+		$tracking_enabled = get_option('vbout_tracking_activated');
+		if ($tracking_enabled) {
+			add_action('wp_footer', array(__CLASS__, 'embed_tracking_code'));
+		}
 	}
 	
 	public static function your_plugin_settings_link($links) { 
@@ -391,14 +397,8 @@ JS;
 		wp_enqueue_style( 'vb-core-css', VBOUT_URL.'/css/vboutwp.css', array(), NULL );
 		wp_enqueue_style( 'vb-jschosen-css', VBOUT_URL.'/js/chosen.min.css', array(), NULL );
 		wp_enqueue_style( 'vb-jsqtip-css', VBOUT_URL.'/js/jquery.qtip.min.css', array(), NULL );
-		
-		//	APPEND TRACKING TO FOOTER IF ENABLED
-		$tracking_enabled = get_option('vbout_tracking_activated');
-		if ($tracking_enabled) {
-			add_action('wp_footer', array(__CLASS__, 'embed_tracking_code'));
-		}
 	}
-	
+
 	public static function sendToVbout()
 	{	
 		if (isset($_POST['vb_post_to_channels']) || isset($_POST['vb_post_to_campaign'])) {
