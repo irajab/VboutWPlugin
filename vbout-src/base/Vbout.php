@@ -133,7 +133,15 @@ class Vbout {
 			
 			$fields_string = '';
 			
-			foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+			foreach($fields as $key=>$value) { 
+				if (is_array($value)) {
+					foreach($value as $k1=>$v1)
+						$fields_string .= $key . '[' . $k1 . ']='.$v1.'&'; 
+				} else {
+					$fields_string .= $key.'='.$value.'&'; 
+				}
+			}
+			
 			rtrim($fields_string, '&');
 		}
 		
